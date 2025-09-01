@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CentenárioFlix</title>
+    <title>APP Centenário</title>
     <!-- Inclui a biblioteca Tailwind CSS para estilização rápida e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Configura a fonte "Roboto" para uma leitura clara e moderna-->
@@ -25,7 +25,7 @@
 
     <!-- Cabeçalho com o título e campo de pesquisa -->
     <header class="bg-gray-800 p-6 flex flex-col sm:flex-row items-center justify-between rounded-b-xl shadow-lg">
-        <h1 class="text-4xl sm:text-3xl font-bold mb-4 sm:mb-0">CentenárioFlix</h1>
+        <h1 class="text-4xl sm:text-3xl font-bold mb-4 sm:mb-0">IP Centenário App</h1>
         <div class="relative w-full sm:w-80">
             <input type="text" id="searchInput" placeholder="Pesquisar vídeos..." class="w-full pl-10 pr-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent text-lg">
             <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -34,7 +34,7 @@
         </div>
     </header>
 
-    <!-- Modal para exibir o vídeo -->
+    <!-- Modal para exibir o vídeo em tela cheia -->
     <div id="videoModal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 transition-opacity duration-300 ease-in-out">
         <div class="bg-gray-900 rounded-lg shadow-xl p-6 relative w-full max-w-4xl max-h-full overflow-hidden">
             <button id="closeModalBtn" class="absolute top-4 right-4 text-red-500 hover:text-red-700 transition-colors text-2xl font-bold rounded-full p-2">
@@ -44,6 +44,16 @@
                 <!-- O vídeo do YouTube será inserido aqui -->
             </div>
             <h2 id="videoTitle" class="mt-4 text-center text-2xl font-semibold"></h2>
+        </div>
+    </div>
+    
+    <!-- Mini-player flutuante -->
+    <div id="miniPlayer" class="hidden fixed bottom-4 right-4 z-40 w-80 h-48 bg-gray-900 rounded-lg shadow-2xl overflow-hidden cursor-move transition-transform duration-300 ease-in-out">
+        <button id="closeMiniPlayerBtn" class="absolute top-1 right-1 text-red-500 hover:text-red-700 transition-colors text-xl font-bold rounded-full p-1 z-50">
+            &times;
+        </button>
+        <div id="miniPlayerVideoContainer" class="w-full h-full">
+            <!-- O iframe do vídeo será inserido aqui -->
         </div>
     </div>
 
@@ -289,6 +299,9 @@
         const searchResultsSection = document.getElementById('searchResultsSection');
         const searchResultsGrid = document.getElementById('searchResultsGrid');
         const categoryButtonsContainer = document.querySelector('.flex.flex-wrap');
+        const miniPlayer = document.getElementById('miniPlayer');
+        const miniPlayerVideoContainer = document.getElementById('miniPlayerVideoContainer');
+        const closeMiniPlayerBtn = document.getElementById('closeMiniPlayerBtn');
 
         // Variáveis para rastrear o estado do vídeo
         let watchTimer;
@@ -423,11 +436,16 @@
                 videoCategoriesContainer.appendChild(categorySection);
             });
         };
-
+        
         // Função para abrir o modal do vídeo
         const openVideoModal = (video) => {
+            // Se o mini-player estiver ativo, feche-o primeiro
+            if (!miniPlayer.classList.contains('hidden')) {
+                closeMiniPlayer();
+            }
             videoContainer.innerHTML = `
                 <iframe 
+                    id="currentVideoIframe"
                     class="absolute top-0 left-0 w-full h-full rounded-lg"
                     src="https://www.youtube.com/embed/${video.id}?autoplay=1" 
                     frameborder="0" 
@@ -437,7 +455,7 @@
             `;
             videoTitle.textContent = video.title;
             videoModal.classList.remove('hidden');
-
+            
             // Tenta ativar a tela cheia para uma visualização imersiva
             if (videoContainer.requestFullscreen) {
                 videoContainer.requestFullscreen().catch(err => {
@@ -451,20 +469,100 @@
             }, WATCH_THRESHOLD);
         };
 
-        // Função para fechar o modal
+        // Função para fechar o modal e mover o vídeo para o mini-player
         const closeModal = () => {
             videoModal.classList.add('hidden');
-            videoContainer.innerHTML = ''; // Para parar o vídeo
-            // Cancela o temporizador se o modal for fechado antes dos 5 minutos
+            // Obtém o iframe do vídeo
+            const iframe = document.getElementById('currentVideoIframe');
+            if (iframe) {
+                // Adiciona o iframe ao mini-player
+                miniPlayerVideoContainer.appendChild(iframe);
+                // Exibe o mini-player
+                miniPlayer.classList.remove('hidden');
+                
+                // Sai do modo de tela cheia se estiver ativo
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                }
+            }
+            // Cancela o temporizador se o modal for fechado
             clearTimeout(watchTimer);
+        };
+        
+        // Função para fechar o mini-player
+        const closeMiniPlayer = () => {
+            miniPlayer.classList.add('hidden');
+            miniPlayerVideoContainer.innerHTML = ''; // Para o vídeo
             // Sai do modo de tela cheia se estiver ativo
             if (document.fullscreenElement) {
                 document.exitFullscreen();
             }
         };
 
-        // Adiciona evento de clique para o botão de fechar
+        // Adiciona evento de clique para o botão de fechar o modal grande
         closeModalBtn.addEventListener('click', closeModal);
+        
+        // Adiciona evento de clique para o botão de fechar o mini-player
+        closeMiniPlayerBtn.addEventListener('click', closeMiniPlayer);
+
+        // Adiciona funcionalidade de arrastar para o mini-player
+        let isDragging = false;
+        let currentX;
+        let currentY;
+        let initialX;
+        let initialY;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        miniPlayer.addEventListener("mousedown", dragStart, false);
+        miniPlayer.addEventListener("mouseup", dragEnd, false);
+        miniPlayer.addEventListener("mousemove", drag, false);
+
+        miniPlayer.addEventListener("touchstart", dragStart, false);
+        miniPlayer.addEventListener("touchend", dragEnd, false);
+        miniPlayer.addEventListener("touchmove", drag, false);
+
+        function dragStart(e) {
+            if (e.target === closeMiniPlayerBtn) return; // Não arraste se o clique for no botão de fechar
+            initialX = e.clientX - xOffset;
+            initialY = e.clientY - yOffset;
+
+            if (e.type === "touchstart") {
+                initialX = e.touches[0].clientX - xOffset;
+                initialY = e.touches[0].clientY - yOffset;
+            }
+
+            isDragging = true;
+        }
+
+        function dragEnd(e) {
+            initialX = currentX;
+            initialY = currentY;
+            isDragging = false;
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+
+                if (e.type === "touchmove") {
+                    currentX = e.touches[0].clientX - initialX;
+                    currentY = e.touches[0].clientY - initialY;
+                } else {
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                }
+
+                xOffset = currentX;
+                yOffset = currentY;
+
+                setTranslate(currentX, currentY, miniPlayer);
+            }
+        }
+
+        function setTranslate(xPos, yPos, el) {
+            el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
+        }
 
         // Fecha o modal ao clicar fora dele
         window.addEventListener('click', (event) => {
@@ -490,7 +588,6 @@
                 }
             }
         });
-
 
         // Função para filtrar os vídeos por texto de pesquisa
         const searchVideos = () => {
@@ -543,6 +640,4 @@
         };
     </script>
 </body>
-
 </html>
-
