@@ -52,7 +52,9 @@
         <button id="closeMiniPlayerBtn" class="absolute top-1 right-1 text-red-500 hover:text-red-700 transition-colors text-xl font-bold rounded-full p-1 z-50">
             &times;
         </button>
-        <div id="miniPlayerVideoContainer" class="w-full h-full">
+        <div id="miniPlayerVideoContainer" class="w-full h-full relative">
+            <!-- Camada invisível para permitir o arrasto sobre o iframe -->
+            <div id="dragOverlay" class="absolute inset-0 z-40 hidden cursor-move"></div>
             <!-- O iframe do vídeo será inserido aqui -->
         </div>
     </div>
@@ -302,6 +304,7 @@
         const miniPlayer = document.getElementById('miniPlayer');
         const miniPlayerVideoContainer = document.getElementById('miniPlayerVideoContainer');
         const closeMiniPlayerBtn = document.getElementById('closeMiniPlayerBtn');
+        const dragOverlay = document.getElementById('dragOverlay');
 
         // Variáveis para rastrear o estado do vídeo
         let watchTimer;
@@ -524,6 +527,10 @@
 
         function dragStart(e) {
             if (e.target === closeMiniPlayerBtn) return; // Não arraste se o clique for no botão de fechar
+            
+            // Mostra a camada de sobreposição para permitir o arrasto
+            dragOverlay.classList.remove('hidden');
+
             initialX = e.clientX - xOffset;
             initialY = e.clientY - yOffset;
 
@@ -536,6 +543,9 @@
         }
 
         function dragEnd(e) {
+            // Esconde a camada de sobreposição
+            dragOverlay.classList.add('hidden');
+
             initialX = currentX;
             initialY = currentY;
             isDragging = false;
