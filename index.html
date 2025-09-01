@@ -459,11 +459,16 @@
             videoTitle.textContent = video.title;
             videoModal.classList.remove('hidden');
             
-            // Tenta ativar a tela cheia para uma visualização imersiva
-            if (videoContainer.requestFullscreen) {
-                videoContainer.requestFullscreen().catch(err => {
-                    console.log('Erro ao tentar tela cheia:', err);
-                });
+           // Adiciona a nova mensagem de rotação
+            if (window.innerWidth < window.innerHeight) { // Verifica se a tela está em modo retrato
+                rotateMessage.classList.remove('hidden');
+                phoneRotateIcon.classList.add('animate-rotate');
+                
+                // Esconde a mensagem após 10 segundos
+                setTimeout(() => {
+                    rotateMessage.classList.add('hidden');
+                    phoneRotateIcon.classList.remove('animate-rotate');
+                }, 10000);
             }
 
             // Inicia o temporizador para marcar o vídeo como assistido
@@ -651,3 +656,4 @@
     </script>
 </body>
 </html>
+
