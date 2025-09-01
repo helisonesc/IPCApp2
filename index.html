@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APP Centenário</title>
+    <title>CentenárioFlix</title>
     <!-- Inclui a biblioteca Tailwind CSS para estilização rápida e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Configura a fonte "Roboto" para uma leitura clara e moderna-->
@@ -25,7 +25,7 @@
 
     <!-- Cabeçalho com o título e campo de pesquisa -->
     <header class="bg-gray-800 p-6 flex flex-col sm:flex-row items-center justify-between rounded-b-xl shadow-lg">
-        <h1 class="text-4xl sm:text-3xl font-bold mb-4 sm:mb-0">IP Centenário App</h1>
+        <h1 class="text-4xl sm:text-3xl font-bold mb-4 sm:mb-0">CentenárioFlix</h1>
         <div class="relative w-full sm:w-80">
             <input type="text" id="searchInput" placeholder="Pesquisar vídeos..." class="w-full pl-10 pr-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent text-lg">
             <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -58,7 +58,17 @@
             <!-- O iframe do vídeo será inserido aqui -->
         </div>
     </div>
-
+ <!-- Mensagem de rotação flutuante (nova) -->
+    <div id="rotateMessage" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-4 bg-gray-800 rounded-lg shadow-lg z-50 transition-opacity duration-300">
+        <div class="flex flex-col items-center">
+            <!-- Ícone SVG de celular para a animação -->
+            <svg id="phoneRotateIcon" class="w-16 h-16 text-white mb-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15.5 2h-7A2.5 2.5 0 0 0 6 4.5v15A2.5 2.5 0 0 0 8.5 22h7a2.5 2.5 0 0 0 2.5-2.5v-15A2.5 2.5 0 0 0 15.5 2zM12 21a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4 10a1 1 0 0 1 0-2M4 14a1 1 0 0 1 0-2M4 18a1 1 0 0 1 0-2M20 10a1 1 0 0 1 0-2M20 14a1 1 0 0 1 0-2M20 18a1 1 0 0 1 0-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p class="text-white text-center">Para melhor visualização, gire seu celular!</p>
+        </div>
+    </div>
     <!-- Conteúdo principal com categorias e grade de vídeos -->
     <main class="container mx-auto p-6 flex-grow">
         <!-- Seção de Categorias (Botões) -->
@@ -656,4 +666,5 @@
     </script>
 </body>
 </html>
+
 
