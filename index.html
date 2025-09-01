@@ -93,7 +93,7 @@
     </div>
     
     <!-- Mini-player flutuante -->
-    <div id="miniPlayer" class="hidden fixed bottom-4 right-4 w-80 h-48 bg-gray-900 rounded-lg shadow-2xl overflow-hidden cursor-move transition-all duration-100 ease-in-out" style="z-index: 100; left: auto; top: auto;">
+    <div id="miniPlayer" class="hidden fixed bottom-4 right-4 w-80 h-48 bg-gray-900 rounded-lg shadow-2xl overflow-hidden cursor-move transition-transform duration-300 ease-in-out" style="z-index: 100;">
         <button id="closeMiniPlayerBtn" class="absolute top-1 right-1 text-red-500 hover:text-red-700 transition-colors text-xl font-bold rounded-full p-1 z-50">
             &times;
         </button>
@@ -585,140 +585,211 @@
         // Adiciona evento de clique para o botão de fechar o mini-player
         closeMiniPlayerBtn.addEventListener('click', closeMiniPlayer);
 
+        // --- Lógica de arrastar o mini-player ---
+        let isDragging = false;
+        let initialX, initialY; // Posição inicial do clique do mouse/toque
+        let xOffset = 0, yOffset = 0; // Posição atual do mini-player
+        let animationFrameId = null;
 
-        // --- Lógica unificada de arrastar e redimensionar o mini-player ---
-        let isMoving = false;
-        let isResizing = false;
-        let startX, startY;
-        let startWidth, startHeight;
-        let startLeft, startTop;
-        let currentHandle = null;
+        // Inicia o arrasto
+        dragOverlay.addEventListener("mousedown", dragStart);
+        dragOverlay.addEventListener("touchstart", dragStart);
 
-        // Inicia o movimento
-        dragOverlay.addEventListener('mousedown', startInteraction);
-        dragOverlay.addEventListener('touchstart', startInteraction);
-
-        // Inicia o redimensionamento
-        Object.values(resizeHandles).forEach(handle => {
-            handle.addEventListener('mousedown', (e) => startInteraction(e, handle));
-            handle.addEventListener('touchstart', (e) => startInteraction(e, handle));
-        });
-
-        function startInteraction(e, handle = null) {
+        function dragStart(e) {
             e.preventDefault();
-            const clientX = e.clientX || e.touches[0].clientX;
-            const clientY = e.clientY || e.touches[0].clientY;
+            
+            const clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
 
-            startX = clientX;
-            startY = clientY;
-            startLeft = miniPlayer.offsetLeft;
-            startTop = miniPlayer.offsetTop;
-            startWidth = miniPlayer.offsetWidth;
-            startHeight = miniPlayer.offsetHeight;
+            initialX = clientX;
+            initialY = clientY;
+            const style = window.getComputedStyle(miniPlayer);
+            const matrix = new DOMMatrix(style.transform);
+            xOffset = matrix.m41;
+            yOffset = matrix.m42;
 
-            if (handle) {
-                isResizing = true;
-                currentHandle = handle;
-                document.body.classList.add('select-none'); // Evita a seleção de texto durante o redimensionamento
-            } else {
-                isMoving = true;
-            }
-
-            document.addEventListener('mousemove', handleInteraction);
-            document.addEventListener('touchmove', handleInteraction);
-            document.addEventListener('mouseup', endInteraction);
-            document.addEventListener('touchend', endInteraction);
+            isDragging = true;
+            animationFrameId = requestAnimationFrame(updateDragPosition);
         }
 
-        function handleInteraction(e) {
-            const clientX = e.clientX || e.touches[0].clientX;
-            const clientY = e.clientY || e.touches[0].clientY;
+        // Finaliza o arrasto
+        document.addEventListener("mouseup", dragEnd);
+        document.addEventListener("touchend", dragEnd);
 
-            const dx = clientX - startX;
-            const dy = clientY - startY;
+        function dragEnd(e) {
+            isDragging = false;
+            cancelAnimationFrame(animationFrameId);
+        }
 
-            if (isMoving) {
-                miniPlayer.style.left = `${startLeft + dx}px`;
-                miniPlayer.style.top = `${startTop + dy}px`;
-            } else if (isResizing) {
-                let newWidth = startWidth;
-                let newHeight = startHeight;
-                let newLeft = startLeft;
-                let newTop = startTop;
+        // Move o player com base na posição do mouse
+        document.addEventListener("mousemove", dragMove);
+        document.addEventListener("touchmove", dragMove);
+        
+        let currentX, currentY; // Posição atual do mouse/toque
 
-                switch (currentHandle.id) {
-                    case 'resizeHandle-br':
-                        newWidth += dx;
-                        newHeight += dy;
-                        break;
-                    case 'resizeHandle-bl':
-                        newWidth -= dx;
-                        newHeight += dy;
-                        newLeft += dx;
-                        break;
-                    case 'resizeHandle-tr':
-                        newWidth += dx;
-                        newHeight -= dy;
-                        newTop += dy;
-                        break;
-                    case 'resizeHandle-tl':
-                        newWidth -= dx;
-                        newHeight -= dy;
-                        newLeft += dx;
-                        newTop += dy;
-                        break;
-                }
+        function dragMove(e) {
+            if (!isDragging) return;
+            e.preventDefault();
 
-                // Limite mínimo de tamanho
+            currentX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+            currentY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+        }
+
+        // Função de atualização no loop de animação
+        function updateDragPosition() {
+            if (isDragging) {
+                const dx = currentX - initialX;
+                const dy = currentY - initialY;
+                
+                let newX = xOffset + dx;
+                let newY = yOffset + dy;
+
+                const screenWidth = window.innerWidth;
+                const screenHeight = window.innerHeight;
+                const playerWidth = miniPlayer.offsetWidth;
+                const playerHeight = miniPlayer.offsetHeight;
+
+                // Limita a posição para que o player não saia da tela
+                newX = Math.min(Math.max(newX, -miniPlayer.offsetLeft), screenWidth - miniPlayer.offsetLeft - playerWidth);
+                newY = Math.min(Math.max(newY, -miniPlayer.offsetTop), screenHeight - miniPlayer.offsetTop - playerHeight);
+                
+                setTranslate(newX, newY, miniPlayer);
+
+                animationFrameId = requestAnimationFrame(updateDragPosition);
+            }
+        }
+        
+        function setTranslate(xPos, yPos, el) {
+            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+        }
+
+        // --- Lógica de redimensionamento do mini-player ---
+        let isResizing = false;
+        let initialWidth, initialHeight;
+        let initialMouseX, initialMouseY;
+        let currentHandle = null;
+
+        Object.keys(resizeHandles).forEach(key => {
+            const handle = resizeHandles[key];
+            handle.addEventListener('mousedown', resizeStart);
+            handle.addEventListener('touchstart', resizeStart);
+        });
+
+        function resizeStart(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            isResizing = true;
+            currentHandle = e.target;
+            
+            initialWidth = miniPlayer.offsetWidth;
+            initialHeight = miniPlayer.offsetHeight;
+            initialMouseX = e.clientX || e.touches[0].clientX;
+            initialMouseY = e.clientY || e.touches[0].clientY;
+
+            miniPlayer.style.transition = 'none'; // Desativa a transição para um redimensionamento mais suave
+            document.body.classList.add('select-none'); // Previne a seleção de texto
+        }
+
+        document.addEventListener('mousemove', resizeMove);
+        document.addEventListener('touchmove', resizeMove);
+
+        function resizeMove(e) {
+            if (!isResizing) return;
+            e.preventDefault();
+
+            const mouseX = e.clientX || e.touches[0].clientX;
+            const mouseY = e.clientY || e.touches[0].clientY;
+
+            const dx = mouseX - initialMouseX;
+            const dy = mouseY - initialMouseY;
+
+            let newWidth, newHeight;
+            let currentX = miniPlayer.offsetLeft;
+            let currentY = miniPlayer.offsetTop;
+
+            switch (currentHandle.id) {
+                case 'resizeHandle-br':
+                    newWidth = initialWidth + dx;
+                    newHeight = initialHeight + dy;
+                    break;
+                case 'resizeHandle-bl':
+                    newWidth = initialWidth - dx;
+                    newHeight = initialHeight + dy;
+                    if (newWidth > 100) { // Limita a largura mínima
+                        miniPlayer.style.left = (currentX + dx) + 'px';
+                    }
+                    break;
+                case 'resizeHandle-tr':
+                    newWidth = initialWidth + dx;
+                    newHeight = initialHeight - dy;
+                    if (newHeight > 100) { // Limita a altura mínima
+                        miniPlayer.style.top = (currentY + dy) + 'px';
+                    }
+                    break;
+                case 'resizeHandle-tl':
+                    newWidth = initialWidth - dx;
+                    newHeight = initialHeight - dy;
+                    if (newWidth > 100) {
+                        miniPlayer.style.left = (currentX + dx) + 'px';
+                    }
+                    if (newHeight > 100) {
+                        miniPlayer.style.top = (currentY + dy) + 'px';
+                    }
+                    break;
+            }
+
+          // Limite mínimo de tamanho
                 if (newWidth > 150) miniPlayer.style.width = `${newWidth}px`;
                 if (newHeight > 100) miniPlayer.style.height = `${newHeight}px`;
                 // Atualiza a posição apenas se a lógica de redimensionamento exigir
                 if (currentHandle.id.includes('l')) miniPlayer.style.left = `${newLeft}px`;
                 if (currentHandle.id.includes('t')) miniPlayer.style.top = `${newTop}px`;
-            }
         }
 
-        function endInteraction() {
-            isMoving = false;
+        document.addEventListener('mouseup', resizeEnd);
+        document.addEventListener('touchend', resizeEnd);
+
+        function resizeEnd() {
             isResizing = false;
             currentHandle = null;
+            miniPlayer.style.transition = 'transform 0.3s ease-in-out';
             document.body.classList.remove('select-none');
-            document.removeEventListener('mousemove', handleInteraction);
-            document.removeEventListener('touchmove', handleInteraction);
-            document.removeEventListener('mouseup', endInteraction);
-            document.removeEventListener('touchend', endInteraction);
         }
 
         // Função para lidar com a rotação da tela (Fullscreen)
         const handleOrientationChange = () => {
             const videoIframe = document.querySelector('#miniPlayerVideoContainer iframe');
-            if (!videoIframe || miniPlayer.classList.contains('hidden')) {
-                return;
-            }
-
-            // Verifica se a tela está em modo paisagem
-            const isLandscape = window.innerHeight < window.innerWidth;
-            console.log('Orientação mudou. Paisagem:', isLandscape);
-
-            if (isLandscape) {
-                if (videoIframe.requestFullscreen) {
-                    videoIframe.requestFullscreen();
-                } else if (videoIframe.mozRequestFullScreen) { // Firefox
-                    videoIframe.mozRequestFullScreen();
-                } else if (videoIframe.webkitRequestFullscreen) { // Chrome, Safari
-                    videoIframe.webkitRequestFullscreen();
-                } else if (videoIframe.msRequestFullscreen) { // IE11
-                    videoIframe.msRequestFullscreen();
-                }
-            } else { // Modo retrato
-                if (document.fullscreenElement) {
-                    document.exitFullscreen();
+            if (videoIframe && !miniPlayer.classList.contains('hidden')) {
+                // Se a tela estiver em modo paisagem (landscape) e o player estiver ativo
+                if (window.innerHeight < window.innerWidth) {
+                    if (videoIframe.requestFullscreen) {
+                        videoIframe.requestFullscreen();
+                    } else if (videoIframe.mozRequestFullScreen) { // Firefox
+                        videoIframe.mozRequestFullScreen();
+                    } else if (videoIframe.webkitRequestFullscreen) { // Chrome, Safari
+                        videoIframe.webkitRequestFullscreen();
+                    } else if (videoIframe.msRequestFullscreen) { // IE11
+                        videoIframe.msRequestFullscreen();
+                    }
+                } else {
+                    // Se a tela estiver em modo retrato (portrait), sai do fullscreen
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.mozCancelFullScreen) { // Firefox
+                        document.mozCancelFullScreen();
+                    } else if (document.webkitExitFullscreen) { // Chrome, Safari
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) { // IE11
+                        document.msExitFullscreen();
+                    }
                 }
             }
         };
 
         // Adiciona um listener para o evento de mudança de orientação
         window.addEventListener('orientationchange', handleOrientationChange);
+
 
         // Fecha o modal ao clicar fora dele
         window.addEventListener('click', (event) => {
