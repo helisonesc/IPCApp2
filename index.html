@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CentenárioFlix</title>
+    <title>APP Centenário</title>
     <!-- Inclui a biblioteca Tailwind CSS para estilização rápida e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Configura a fonte "Roboto" para uma leitura clara e moderna-->
@@ -19,13 +19,24 @@
         .horizontal-scroll-container::-webkit-scrollbar {
             display: none; /* Chrome, Safari, Opera */
         }
+        /* Animação para o ícone de rotação */
+        @keyframes rotatePhone {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(15deg); }
+            50% { transform: rotate(0deg); }
+            75% { transform: rotate(-15deg); }
+            100% { transform: rotate(0deg); }
+        }
+        .animate-rotate {
+            animation: rotatePhone 2s infinite;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
     <!-- Cabeçalho com o título e campo de pesquisa -->
     <header class="bg-gray-800 p-6 flex flex-col sm:flex-row items-center justify-between rounded-b-xl shadow-lg">
-        <h1 class="text-4xl sm:text-3xl font-bold mb-4 sm:mb-0">CentenárioFlix</h1>
+        <h1 class="text-4xl sm:text-3xl font-bold mb-4 sm:mb-0">IP Centenário App</h1>
         <div class="relative w-full sm:w-80">
             <input type="text" id="searchInput" placeholder="Pesquisar vídeos..." class="w-full pl-10 pr-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent text-lg">
             <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -54,11 +65,13 @@
         </button>
         <div id="miniPlayerVideoContainer" class="w-full h-full relative">
             <!-- Camada invisível para permitir o arrasto sobre o iframe -->
-            <div id="dragOverlay" class="absolute inset-0 z-40 hidden cursor-move"></div>
+            <!-- A classe `pointer-events-none` impede que o elemento capture eventos do mouse por padrão -->
+            <div id="dragOverlay" class="absolute inset-0 z-40 cursor-move"></div>
             <!-- O iframe do vídeo será inserido aqui -->
         </div>
     </div>
- <!-- Mensagem de rotação flutuante (nova) -->
+
+    <!-- Mensagem de rotação flutuante (nova) -->
     <div id="rotateMessage" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-4 bg-gray-800 rounded-lg shadow-lg z-50 transition-opacity duration-300">
         <div class="flex flex-col items-center">
             <!-- Ícone SVG de celular para a animação -->
@@ -69,6 +82,7 @@
             <p class="text-white text-center">Para melhor visualização, gire seu celular!</p>
         </div>
     </div>
+
     <!-- Conteúdo principal com categorias e grade de vídeos -->
     <main class="container mx-auto p-6 flex-grow">
         <!-- Seção de Categorias (Botões) -->
@@ -315,6 +329,8 @@
         const miniPlayerVideoContainer = document.getElementById('miniPlayerVideoContainer');
         const closeMiniPlayerBtn = document.getElementById('closeMiniPlayerBtn');
         const dragOverlay = document.getElementById('dragOverlay');
+        const rotateMessage = document.getElementById('rotateMessage');
+        const phoneRotateIcon = document.getElementById('phoneRotateIcon');
 
         // Variáveis para rastrear o estado do vídeo
         let watchTimer;
@@ -469,16 +485,16 @@
             videoTitle.textContent = video.title;
             videoModal.classList.remove('hidden');
             
-           // Adiciona a nova mensagem de rotação
+            // Adiciona a nova mensagem de rotação
             if (window.innerWidth < window.innerHeight) { // Verifica se a tela está em modo retrato
                 rotateMessage.classList.remove('hidden');
                 phoneRotateIcon.classList.add('animate-rotate');
                 
-                // Esconde a mensagem após 10 segundos
+                // Esconde a mensagem após 5 segundos
                 setTimeout(() => {
                     rotateMessage.classList.add('hidden');
                     phoneRotateIcon.classList.remove('animate-rotate');
-                }, 10000);
+                }, 5000);
             }
 
             // Inicia o temporizador para marcar o vídeo como assistido
@@ -523,94 +539,98 @@
         // Adiciona evento de clique para o botão de fechar o mini-player
         closeMiniPlayerBtn.addEventListener('click', closeMiniPlayer);
 
-        // Adiciona funcionalidade de arrastar para o mini-player
+        // --- Lógica de arrastar o mini-player - Corrigida ---
         let isDragging = false;
-        let currentX;
-        let currentY;
-        let initialX;
-        let initialY;
-        let xOffset = 0;
-        let yOffset = 0;
+        let initialX, initialY; // Posição inicial do clique do mouse/toque
+        let xOffset = 0, yOffset = 0; // Posição atual do mini-player
+        let animationFrameId = null;
 
-        miniPlayer.addEventListener("mousedown", dragStart, false);
-        miniPlayer.addEventListener("mouseup", dragEnd, false);
-        miniPlayer.addEventListener("mousemove", drag, false);
-
-        miniPlayer.addEventListener("touchstart", dragStart, false);
-        miniPlayer.addEventListener("touchend", dragEnd, false);
-        miniPlayer.addEventListener("touchmove", drag, false);
+        // Inicia o arrasto
+        dragOverlay.addEventListener("mousedown", dragStart);
+        dragOverlay.addEventListener("touchstart", dragStart);
 
         function dragStart(e) {
-            if (e.target === closeMiniPlayerBtn) return; // Não arraste se o clique for no botão de fechar
+            e.preventDefault();
+            // Se o clique for no botão de fechar, ignora o arrasto
+            if (e.target === closeMiniPlayerBtn) return;
             
-            // Mostra a camada de sobreposição para permitir o arrasto
-            dragOverlay.classList.remove('hidden');
+            const clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
 
-            initialX = e.clientX - xOffset;
-            initialY = e.clientY - yOffset;
-
-            if (e.type === "touchstart") {
-                initialX = e.touches[0].clientX - xOffset;
-                initialY = e.touches[0].clientY - yOffset;
-            }
+            // Armazena a posição inicial do mouse e do mini-player
+            initialX = clientX;
+            initialY = clientY;
+            const style = window.getComputedStyle(miniPlayer);
+            const matrix = new DOMMatrix(style.transform);
+            xOffset = matrix.m41;
+            yOffset = matrix.m42;
 
             isDragging = true;
+            
+            // Inicia o loop de animação
+            animationFrameId = requestAnimationFrame(updatePosition);
         }
+
+        // Finaliza o arrasto
+        document.addEventListener("mouseup", dragEnd);
+        document.addEventListener("touchend", dragEnd);
 
         function dragEnd(e) {
-            // Esconde a camada de sobreposição
-            dragOverlay.classList.add('hidden');
-
-            initialX = currentX;
-            initialY = currentY;
             isDragging = false;
+            // Cancela o loop de animação
+            cancelAnimationFrame(animationFrameId);
         }
 
-        function drag(e) {
+        // Move o player com base na posição do mouse
+        document.addEventListener("mousemove", dragMove);
+        document.addEventListener("touchmove", dragMove);
+        
+        let currentX, currentY; // Posição atual do mouse/toque
+
+        function dragMove(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+
+            currentX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+            currentY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+        }
+
+        // Função de atualização no loop de animação
+        function updatePosition() {
             if (isDragging) {
-                e.preventDefault();
+                const dx = currentX - initialX;
+                const dy = currentY - initialY;
+                
+                let newX = xOffset + dx;
+                let newY = yOffset + dy;
 
-                if (e.type === "touchmove") {
-                    currentX = e.touches[0].clientX - initialX;
-                    currentY = e.touches[0].clientY - initialY;
-                } else {
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-                }
+                // Limita a posição para que o player não saia da tela
+                const screenWidth = window.innerWidth;
+                const screenHeight = window.innerHeight;
+                const playerWidth = miniPlayer.offsetWidth;
+                const playerHeight = miniPlayer.offsetHeight;
 
-                xOffset = currentX;
-                yOffset = currentY;
+                const minX = -screenWidth + playerWidth; // Permite arrastar para a esquerda
+                const minY = -screenHeight + playerHeight; // Permite arrastar para cima
 
-                setTranslate(currentX, currentY, miniPlayer);
+                newX = Math.min(Math.max(newX, minX), screenWidth);
+                newY = Math.min(Math.max(newY, minY), screenHeight);
+
+                setTranslate(newX, newY, miniPlayer);
+
+                // Continua o loop
+                animationFrameId = requestAnimationFrame(updatePosition);
             }
         }
-
+        
         function setTranslate(xPos, yPos, el) {
-            el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
+            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
         }
 
         // Fecha o modal ao clicar fora dele
         window.addEventListener('click', (event) => {
             if (event.target === videoModal) {
                 closeModal();
-            }
-        });
-
-        // Adiciona um listener para o evento de mudança de orientação da tela
-        screen.orientation.addEventListener('change', () => {
-            if (videoModal.classList.contains('hidden')) {
-                return;
-            }
-            if (screen.orientation.type.includes('landscape')) {
-                // Se a tela estiver em modo paisagem (horizontal), entra em tela cheia
-                if (videoContainer.requestFullscreen) {
-                    videoContainer.requestFullscreen();
-                }
-            } else {
-                // Se a tela estiver em modo retrato (vertical), sai da tela cheia
-                if (document.fullscreenElement) {
-                    document.exitFullscreen();
-                }
             }
         });
 
@@ -666,5 +686,3 @@
     </script>
 </body>
 </html>
-
-
