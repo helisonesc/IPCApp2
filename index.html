@@ -114,11 +114,8 @@
     <!-- Modal para exibir o vídeo -->
     <div id="videoModal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 transition-opacity duration-300 ease-in-out">
         <div class="bg-gray-900 rounded-lg shadow-xl p-6 relative w-full max-w-4xl max-h-full flex flex-col items-center">
-            <div id="videoContainer" class="video-container">
-                <!-- O vídeo do YouTube será inserido aqui -->
-            </div>
-            <div class="flex items-center justify-between w-full mt-4">
-                <h2 id="videoTitle" class="text-xl sm:text-2xl font-semibold leading-tight flex-grow text-left"></h2>
+            <div class="flex flex-col items-start w-full mb-4">
+                <h2 id="videoTitle" class="text-xl sm:text-2xl font-semibold leading-tight text-left mb-2"></h2>
                 <div class="flex space-x-2">
                     <button id="minimizeModalBtn" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 transition-colors rounded-full text-sm">
                         Minimizar
@@ -127,6 +124,9 @@
                         Fechar
                     </button>
                 </div>
+            </div>
+            <div id="videoContainer" class="video-container">
+                <!-- O vídeo do YouTube será inserido aqui -->
             </div>
         </div>
     </div>
@@ -533,31 +533,29 @@
             }
         };
         
-        // Função para ativar a tela cheia em dispositivos móveis
+        // Função para ativar a tela cheia
         const enterFullscreen = (element) => {
-            if (element.requestFullscreen) {
-                element.requestFullscreen();
-            } else if (element.webkitRequestFullscreen) { /* Safari */
-                element.webkitRequestFullscreen();
-            } else if (element.msRequestFullscreen) { /* IE11 */
-                element.msRequestFullscreen();
+            if (element) {
+                if (element.requestFullscreen) {
+                    element.requestFullscreen();
+                } else if (element.webkitRequestFullscreen) { /* Safari */
+                    element.webkitRequestFullscreen();
+                } else if (element.msRequestFullscreen) { /* IE11 */
+                    element.msRequestFullscreen();
+                }
             }
         };
 
-        // Adiciona um listener para a mudança de orientação
+        // Adiciona um listener para a mudança de orientação e verifica o modo fullscreen
         window.addEventListener('orientationchange', () => {
-            if (window.matchMedia("(orientation: landscape)").matches) {
-                const modalPlayer = videoModal.querySelector('iframe');
-                const miniPlayerPlayer = miniPlayerContainer.querySelector('iframe');
-                if (modalPlayer && !videoModal.classList.contains('hidden')) {
-                    enterFullscreen(modalPlayer);
-                } else if (miniPlayerPlayer && !miniPlayer.classList.contains('hidden')) {
-                    enterFullscreen(miniPlayerPlayer);
+            // Adiciona um pequeno atraso para garantir que o player do YouTube esteja completamente pronto para o fullscreen
+            setTimeout(() => {
+                if (player && player.getIframe() && window.innerWidth > window.innerHeight) {
+                    enterFullscreen(player.getIframe());
                 }
-            }
+            }, 500); // Atraso de 500ms
         });
         
-
         // Lidar com a funcionalidade de arrastar e soltar do mini-player
         const miniPlayerHandle = document.getElementById('miniPlayerHandle');
         let isDragging = false;
