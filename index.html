@@ -32,104 +32,134 @@
         }
 
         /* Estilos para as alças de redimensionamento */
-        .resize-handle {
+        .mini-player-handle {
+            cursor: grab;
+            touch-action: none;
+        }
+
+        /* Classes para o mini-player */
+        .mini-player-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 320px;
+            height: 180px;
+            transition: all 0.3s ease-in-out;
+            z-index: 50;
+        }
+
+        /* Estilos para o menu de filtro flutuante */
+        .floating-header-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            transition: transform 0.3s ease-in-out;
+        }
+        .floating-header-container.hidden-header {
+            transform: translateY(-100%);
+        }
+
+        /* Estilo para garantir que o iframe do YouTube se adapte */
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-top: 56.25%; /* Proporção 16:9 */
+        }
+
+        .video-container iframe {
             position: absolute;
-            width: 1rem;
-            height: 1rem;
-            background-color: transparent;
-            z-index: 10;
-        }
-
-        .resize-handle-br {
-            bottom: 0;
-            right: 0;
-            cursor: se-resize;
-        }
-
-        .resize-handle-bl {
-            bottom: 0;
-            left: 0;
-            cursor: sw-resize;
-        }
-
-        .resize-handle-tr {
-            top: 0;
-            right: 0;
-            cursor: ne-resize;
-        }
-        
-        .resize-handle-tl {
             top: 0;
             left: 0;
-            cursor: nw-resize;
+            width: 100%;
+            height: 100%;
         }
-
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
-    <!-- Cabeçalho com o título e campo de pesquisa -->
-    <header class="bg-gray-800 p-6 flex flex-col sm:flex-row items-center justify-between rounded-b-xl shadow-lg">
-        <h1 class="text-4xl sm:text-3xl font-bold mb-4 sm:mb-0">IP Centenário App</h1>
-        <div class="relative w-full sm:w-80">
-            <input type="text" id="searchInput" placeholder="Pesquisar vídeos..." class="w-full pl-10 pr-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent text-lg">
-            <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
-            </svg>
-        </div>
-    </header>
+    <!-- Cabeçalho e filtros flutuantes -->
+    <div id="floatingHeaderContainer" class="floating-header-container">
+        <!-- Cabeçalho fixo com o título e campo de pesquisa -->
+        <header class="bg-gray-800 p-4 sm:p-6 flex flex-row items-center justify-between rounded-b-xl shadow-lg">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-3xl sm:text-2xl font-bold">APP Centenário</h1>
+            </div>
+            <div class="relative w-full sm:w-64">
+                <input type="text" id="searchInput" placeholder="Pesquisar vídeos..." class="w-full pl-10 pr-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent text-sm">
+                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                </svg>
+            </div>
+        </header>
 
-    <!-- Modal para exibir o vídeo em tela cheia -->
+        <!-- Menu de filtro flutuante -->
+        <div id="filterMenu" class="bg-gray-900 py-3 rounded-b-lg shadow-md flex justify-center flex-col">
+            <div id="categoryButtonsContainer" class="horizontal-scroll-container flex flex-nowrap space-x-3 px-4 pb-2 overflow-x-auto">
+                <!-- Botões de categoria serão criados dinamicamente aqui -->
+            </div>
+            <div class="flex justify-start px-4 mt-2 space-x-3">
+                <button id="surpriseMeBtn" class="flex-none px-4 py-2 bg-blue-600 hover:bg-blue-700 transition-colors text-sm rounded-full shadow-lg">
+                    Surpreenda-se
+                </button>
+                <button id="unwatchedBtn" class="flex-none px-4 py-2 bg-purple-600 hover:bg-purple-700 transition-colors text-sm rounded-full shadow-lg">
+                    Não assistidos
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para exibir o vídeo -->
     <div id="videoModal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 transition-opacity duration-300 ease-in-out">
-        <div class="bg-gray-900 rounded-lg shadow-xl p-6 relative w-full max-w-4xl max-h-full overflow-hidden">
-            <button id="closeModalBtn" class="absolute top-4 right-4 text-red-500 hover:text-red-700 transition-colors text-2xl font-bold rounded-full p-2">
-                &times;
-            </button>
-            <div id="videoContainer" class="relative" style="padding-top: 56.25%;">
+        <div class="bg-gray-900 rounded-lg shadow-xl p-6 relative w-full max-w-4xl max-h-full flex flex-col items-center">
+            <div id="videoContainer" class="video-container">
                 <!-- O vídeo do YouTube será inserido aqui -->
             </div>
-            <h2 id="videoTitle" class="mt-4 text-center text-2xl font-semibold"></h2>
+            <div class="flex items-center justify-between w-full mt-4">
+                <h2 id="videoTitle" class="text-xl sm:text-2xl font-semibold leading-tight flex-grow text-left"></h2>
+                <div class="flex space-x-2">
+                    <button id="minimizeModalBtn" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 transition-colors rounded-full text-sm">
+                        Minimizar
+                    </button>
+                    <button id="closeModalBtn" class="px-4 py-2 bg-red-500 hover:bg-red-700 transition-colors text-white text-sm rounded-full">
+                        Fechar
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
-    
-    <!-- Mini-player flutuante -->
-    <div id="miniPlayer" class="hidden fixed bottom-4 right-4 w-80 h-48 bg-gray-900 rounded-lg shadow-2xl overflow-hidden cursor-move transition-transform duration-300 ease-in-out" style="z-index: 100;">
-        <button id="closeMiniPlayerBtn" class="absolute top-1 right-1 text-red-500 hover:text-red-700 transition-colors text-xl font-bold rounded-full p-1 z-50">
-            &times;
+
+    <!-- Mini-player -->
+    <div id="miniPlayer" class="mini-player-container hidden rounded-lg shadow-xl overflow-hidden cursor-move">
+        <div id="miniPlayerContainer" class="relative w-full h-full">
+            <!-- Conteúdo do mini-player -->
+        </div>
+        <button id="miniPlayerCloseBtn" class="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-colors text-2xl font-bold rounded-full p-1">
+            ×
         </button>
-        <div id="miniPlayerVideoContainer" class="w-full h-full relative">
-            <!-- Camada invisível para permitir o arrasto sobre o iframe -->
-            <div id="dragOverlay" class="absolute inset-0 z-40 cursor-move"></div>
-            <!-- O iframe do vídeo será inserido aqui -->
-        </div>
-
-        <!-- Alças de redimensionamento -->
-        <div id="resizeHandle-br" class="resize-handle resize-handle-br"></div>
-        <div id="resizeHandle-bl" class="resize-handle resize-handle-bl"></div>
-        <div id="resizeHandle-tr" class="resize-handle resize-handle-tr"></div>
-        <div id="resizeHandle-tl" class="resize-handle resize-handle-tl"></div>
+        <div id="miniPlayerHandle" class="mini-player-handle absolute top-0 left-0 w-full h-full"></div>
     </div>
 
-    <!-- Mensagem de rotação flutuante (nova) -->
-    <div id="rotateMessage" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-4 bg-gray-800 rounded-lg shadow-lg z-50 transition-opacity duration-300">
-        <div class="flex flex-col items-center">
-            <!-- Ícone SVG de celular para a animação -->
-            <svg id="phoneRotateIcon" class="w-16 h-16 text-white mb-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15.5 2h-7A2.5 2.5 0 0 0 6 4.5v15A2.5 2.5 0 0 0 8.5 22h7a2.5 2.5 0 0 0 2.5-2.5v-15A2.5 2.5 0 0 0 15.5 2zM12 21a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M4 10a1 1 0 0 1 0-2M4 14a1 1 0 0 1 0-2M4 18a1 1 0 0 1 0-2M20 10a1 1 0 0 1 0-2M20 14a1 1 0 0 1 0-2M20 18a1 1 0 0 1 0-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <p class="text-white text-center">Para melhor visualização, gire seu celular!</p>
-        </div>
-    </div>
-
-    <!-- Conteúdo principal com categorias e grade de vídeos -->
-    <main class="container mx-auto p-6 flex-grow">
-        <!-- Seção de Categorias (Botões) -->
-        <div class="flex flex-wrap justify-center sm:justify-start gap-4 mb-8">
-            <button class="categoryBtn px-6 py-3 bg-gray-700 hover:bg-red-600 transition-colors text-lg rounded-full shadow-lg" data-category="Todos">Todos</button>
-            <button class="categoryBtn px-6 py-3 bg-gray-700 hover:bg-red-600 transition-colors text-lg rounded-full shadow-lg" data-category="Não Assistidos">Não Assistidos</button>
-            <!-- Os botões de categoria restantes serão criados dinamicamente pelo JavaScript -->
-        </div>
+    <!-- Conteúdo principal -->
+    <main class="container mx-auto p-6 flex-grow pt-40">
+        <!-- Vídeo de Destaque -->
+        <section class="mb-8">
+            <h2 class="text-3xl font-bold mb-4">Em Destaque Hoje</h2>
+            <div id="featuredVideoContainer" class="relative w-full rounded-lg overflow-hidden shadow-xl cursor-pointer" style="padding-top: 56.25%;">
+                <!-- O vídeo de destaque será inserido aqui -->
+                <div id="featuredOverlay" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 hover:bg-opacity-20 transition-all duration-300">
+                    <svg class="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-t from-gray-900 via-transparent to-transparent">
+                    <h3 id="featuredVideoTitle" class="text-3xl font-bold"></h3>
+                </div>
+                <img id="featuredThumbnail" src="" alt="Vídeo em destaque" class="absolute inset-0 w-full h-full object-cover">
+            </div>
+        </section>
 
         <!-- Seção de resultados de pesquisa (oculta por padrão) -->
         <section id="searchResultsSection" class="hidden mb-8">
@@ -152,13 +182,11 @@
 
     <!-- Rodapé -->
     <footer class="bg-gray-800 p-4 text-center text-gray-500 text-sm rounded-t-xl mt-8">
-        © 2025 IP Centenário. Todos os direitos reservados.
+        © 2025 Igreja Presbiteriana do Centenário <br> Todos os direitos reservados
     </footer>
 
     <script>
-        // Use uma estrutura de dados simples para seus vídeos.
-        // Copie o ID do vídeo do YouTube (a parte final da URL, por exemplo: "dQw4w9WgXcQ").
-        // ATENÇÃO: Substitua os dados abaixo pelos vídeos do seu canal!
+        // Dados de exemplo para os vídeos.
         const videos = [
             { id: 'yODJiiNQ4T8', title: 'Condições para um avivamento jenuíno', category: 'Mensagens', thumbnail: 'https://img.youtube.com/vi/yODJiiNQ4T8/mqdefault.jpg' },
             { id: 'qWTKkY2GaNs', title: 'O casamento de Deus com o seu povo', category: 'Mensagens', thumbnail: 'https://img.youtube.com/vi/qWTKkY2GaNs/mqdefault.jpg' },
@@ -193,8 +221,7 @@
             { id: 'eY52Zsg-Kug', title: 'Em desenvolvimento', category: 'Peças Teatrais', thumbnail: 'https://img.youtube.com/vi/eY52Zsg-Kug/mqdefault.jpg' }
         ];
 
-
-       // Seleciona os elementos da página
+        // Seleciona os elementos da página
         const searchInput = document.getElementById('searchInput');
         const videoModal = document.getElementById('videoModal');
         const closeModalBtn = document.getElementById('closeModalBtn');
@@ -204,52 +231,69 @@
         const videoCategoriesContainer = document.getElementById('videoCategoriesContainer');
         const searchResultsSection = document.getElementById('searchResultsSection');
         const searchResultsGrid = document.getElementById('searchResultsGrid');
-        const categoryButtonsContainer = document.querySelector('.flex.flex-wrap');
+        const categoryButtonsContainer = document.getElementById('categoryButtonsContainer');
+        const surpriseMeBtn = document.getElementById('surpriseMeBtn');
+        const unwatchedBtn = document.getElementById('unwatchedBtn');
         const miniPlayer = document.getElementById('miniPlayer');
-        const miniPlayerVideoContainer = document.getElementById('miniPlayerVideoContainer');
-        const closeMiniPlayerBtn = document.getElementById('closeMiniPlayerBtn');
-        const dragOverlay = document.getElementById('dragOverlay');
-        const rotateMessage = document.getElementById('rotateMessage');
-        const phoneRotateIcon = document.getElementById('phoneRotateIcon');
-        const resizeHandles = {
-            br: document.getElementById('resizeHandle-br'),
-            bl: document.getElementById('resizeHandle-bl'),
-            tr: document.getElementById('resizeHandle-tr'),
-            tl: document.getElementById('resizeHandle-tl')
-        };
+        const miniPlayerContainer = document.getElementById('miniPlayerContainer');
+        const miniPlayerCloseBtn = document.getElementById('miniPlayerCloseBtn');
+        const minimizeModalBtn = document.getElementById('minimizeModalBtn');
+        const featuredVideoContainer = document.getElementById('featuredVideoContainer');
+        const floatingHeaderContainer = document.getElementById('floatingHeaderContainer');
+        const featuredThumbnail = document.getElementById('featuredThumbnail');
+        const featuredVideoTitle = document.getElementById('featuredVideoTitle');
+        const featuredOverlay = document.getElementById('featuredOverlay');
+        let player; // Variável global para o player do YouTube
+        let isMiniPlayerActive = false;
+        let lastPlayedVideoId = null;
+        let lastScrollY = window.scrollY;
+        let videoQueue = []; // Fila de vídeos para reprodução quando a API estiver pronta
+        let isYouTubeAPIReady = false;
 
+        // Funções para carregar e salvar dados no localStorage
+        const loadWatchedVideos = () => JSON.parse(localStorage.getItem('watchedVideos')) || {};
+        const saveWatchedVideos = (watchedVideos) => localStorage.setItem('watchedVideos', JSON.stringify(watchedVideos));
 
-        // Variáveis para rastrear o estado do vídeo
-        let watchTimer;
-        let watchedVideos = new Set();
-        const WATCH_THRESHOLD = 300000; // 5 minutos em milissegundos
+        // Função para obter o vídeo de destaque diário
+        const getDailyFeaturedVideo = () => {
+            const now = new Date();
+            const today = now.getDate();
+            const lastFeaturedDate = localStorage.getItem('featuredVideoDate');
+            let featuredVideo = JSON.parse(localStorage.getItem('featuredVideo')) || null;
 
-        // Função para carregar os vídeos assistidos do localStorage
-        const loadWatchedVideos = () => {
-            const storedVideos = localStorage.getItem('watchedVideos');
-            if (storedVideos) {
-                watchedVideos = new Set(JSON.parse(storedVideos));
+            if (lastFeaturedDate !== null && new Date(lastFeaturedDate).getDate() === today) {
+                return featuredVideo;
+            } else {
+                const newFeaturedVideo = videos[Math.floor(Math.random() * videos.length)];
+                localStorage.setItem('featuredVideoDate', now.toISOString());
+                localStorage.setItem('featuredVideo', JSON.stringify(newFeaturedVideo));
+                return newFeaturedVideo;
             }
         };
 
-        // Função para salvar um vídeo como assistido no localStorage
-        const markVideoAsWatched = (videoId) => {
-            watchedVideos.add(videoId);
-            localStorage.setItem('watchedVideos', JSON.stringify(Array.from(watchedVideos)));
-            // Atualiza a interface para mostrar a marca de "visto"
-            const updatedVideo = videos.find(v => v.id === videoId);
-            if (updatedVideo) {
-                renderCategories();
+        // Função para renderizar o vídeo de destaque
+        const renderFeaturedVideo = () => {
+            const featuredVideo = getDailyFeaturedVideo();
+            if (featuredVideo) {
+                featuredThumbnail.src = featuredVideo.thumbnail;
+                featuredVideoTitle.textContent = featuredVideo.title;
+                featuredVideoContainer.dataset.videoId = featuredVideo.id;
             }
         };
 
         // Função para criar um card de vídeo
-        const createVideoCard = (video) => {
+        const createVideoCard = (video, showProgress = false) => {
+            const watchedVideos = loadWatchedVideos();
             const videoCard = document.createElement('div');
-            // Adiciona a classe 'watched' se o vídeo já foi assistido
-            videoCard.className = `video-card bg-gray-800 rounded-xl shadow-xl overflow-hidden flex-none w-64 sm:w-72 cursor-pointer transform transition-transform duration-300 hover:scale-105 relative ${watchedVideos.has(video.id) ? 'opacity-75' : ''}`;
+            videoCard.className = 'video-card bg-gray-800 rounded-xl shadow-xl overflow-hidden flex-none w-64 sm:w-72 cursor-pointer transform transition-transform duration-300 hover:scale-105';
             
-            const isWatched = watchedVideos.has(video.id);
+            let progressHtml = '';
+            if (showProgress && watchedVideos[video.id] && watchedVideos[video.id].lastTime > 0) {
+                const progress = (watchedVideos[video.id].lastTime / watchedVideos[video.id].duration) * 100;
+                progressHtml = `<div class="absolute bottom-0 left-0 right-0 h-1 bg-gray-600">
+                                    <div class="h-full bg-red-600" style="width: ${progress}%;"></div>
+                                </div>`;
+            }
 
             videoCard.innerHTML = `
                 <div class="relative w-full" style="padding-top: 56.25%;">
@@ -259,70 +303,85 @@
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
                         </svg>
                     </div>
+                    ${progressHtml}
                 </div>
                 <div class="p-4">
                     <h3 class="text-lg font-semibold leading-tight">${video.title}</h3>
                 </div>
-                ${isWatched ? `
-                    <div class="absolute top-2 right-2 text-green-500 bg-gray-900 rounded-full p-1 shadow-lg">
-                        <!-- Ícone de checkmark (visto) -->
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                    </div>
-                ` : ''}
             `;
             videoCard.addEventListener('click', () => openVideoModal(video));
             return videoCard;
         };
+        
+        // Função para renderizar a seção "Continue Assistindo"
+        const renderWatchedVideosSection = () => {
+            const watchedVideos = loadWatchedVideos();
+            const watchedVideoIds = Object.keys(watchedVideos).filter(id => watchedVideos[id].lastTime > 0);
+            
+            const watchedVideosList = videos.filter(video => watchedVideoIds.includes(video.id));
+            
+            // Remove a seção anterior se existir
+            const existingSection = document.getElementById('continueWatchingSection');
+            if (existingSection) {
+                existingSection.remove();
+            }
 
-        // Função para renderizar as seções de categorias
-        const renderCategories = () => {
-            videoCategoriesContainer.innerHTML = '';
-            // Obtém categorias únicas, mantendo a ordem original da primeira ocorrência
-            const uniqueCategories = new Set(videos.map(video => video.category));
+            if (watchedVideosList.length > 0) {
+                const section = document.createElement('section');
+                section.id = 'continueWatchingSection';
+                section.className = 'video-category-section mb-8 relative mt-8';
+
+                const title = document.createElement('h2');
+                title.className = 'text-3xl font-bold mb-4';
+                title.textContent = 'Continue Assistindo';
+                section.appendChild(title);
+
+                const container = document.createElement('div');
+                container.className = 'horizontal-scroll-container flex space-x-6 overflow-x-auto pb-4';
+                
+                watchedVideosList.forEach(video => {
+                    container.appendChild(createVideoCard(video, true));
+                });
+                section.appendChild(container);
+                
+                videoCategoriesContainer.appendChild(section);
+            }
+        };
+
+        // Função para renderizar as seções de categorias e os botões de filtro
+        const renderCategories = (filteredVideos = videos) => {
+            const uniqueCategories = ['Todos', ...new Set(filteredVideos.map(video => video.category))];
             
-            // Cria os botões de categoria dinamicamente, removendo os antigos
-            const existingButtons = categoryButtonsContainer.querySelectorAll('.categoryBtn:not([data-category="Todos"]):not([data-category="Não Assistidos"])');
-            existingButtons.forEach(button => button.remove());
-            
+            // Limpa o container de botões e o recria
+            categoryButtonsContainer.innerHTML = '';
             uniqueCategories.forEach(category => {
                 const button = document.createElement('button');
-                button.className = 'categoryBtn px-6 py-3 bg-gray-700 hover:bg-red-600 transition-colors text-lg rounded-full shadow-lg';
+                button.className = 'categoryBtn flex-none px-4 py-2 bg-gray-700 hover:bg-red-600 transition-colors text-sm rounded-full shadow-lg';
                 button.dataset.category = category;
                 button.textContent = category;
                 categoryButtonsContainer.appendChild(button);
             });
 
-            // Adiciona evento de clique para os botões de categoria
+            // Adiciona o event listener para os botões de categoria
             document.querySelectorAll('.categoryBtn').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const category = e.target.dataset.category;
                     
-                    document.querySelectorAll('.categoryBtn').forEach(btn => btn.classList.remove('bg-red-600'));
-                    e.target.classList.add('bg-red-600');
-
-                    searchInput.value = '';
+                    document.querySelectorAll('.categoryBtn').forEach(btn => btn.classList.remove('bg-red-600', 'hover:bg-red-700'));
+                    e.target.classList.add('bg-red-600', 'hover:bg-red-700');
+                    
+                    document.querySelectorAll('.video-category-section').forEach(section => {
+                        section.classList.add('hidden');
+                    });
+                    
                     searchResultsSection.classList.add('hidden');
                     noResults.classList.add('hidden');
-
+                    
                     if (category === 'Todos') {
-                        document.querySelectorAll('.video-category-section').forEach(section => section.classList.remove('hidden'));
-                    } else if (category === 'Não Assistidos') {
-                        document.querySelectorAll('.video-category-section').forEach(section => section.classList.add('hidden'));
-                        const unwatchedVideos = videos.filter(video => !watchedVideos.has(video.id));
-                        searchResultsGrid.innerHTML = '';
-                        if (unwatchedVideos.length > 0) {
-                            unwatchedVideos.forEach(video => {
-                                searchResultsGrid.appendChild(createVideoCard(video));
-                            });
-                            searchResultsSection.classList.remove('hidden');
-                        } else {
-                            noResults.classList.remove('hidden');
-                            noResults.textContent = 'Parabéns, você assistiu a todos os vídeos!';
-                        }
+                        document.querySelectorAll('.video-category-section').forEach(section => {
+                            section.classList.remove('hidden');
+                        });
                     } else {
-                        document.querySelectorAll('.video-category-section').forEach(section => section.classList.add('hidden'));
                         const sectionToShow = document.getElementById(`category-${category.replace(/\s/g, '-')}`);
                         if (sectionToShow) {
                             sectionToShow.classList.remove('hidden');
@@ -331,10 +390,12 @@
                 });
             });
 
-            uniqueCategories.forEach(category => {
+            // Cria as seções de carrossel de vídeo para cada categoria
+            videoCategoriesContainer.innerHTML = '';
+            uniqueCategories.filter(cat => cat !== 'Todos').forEach(category => {
                 const categorySection = document.createElement('section');
                 categorySection.id = `category-${category.replace(/\s/g, '-')}`;
-                categorySection.className = 'video-category-section mb-8';
+                categorySection.className = 'video-category-section mb-8 relative';
 
                 const sectionTitle = document.createElement('h2');
                 sectionTitle.className = 'text-3xl font-bold mb-4';
@@ -343,352 +404,315 @@
 
                 const horizontalContainer = document.createElement('div');
                 horizontalContainer.className = 'horizontal-scroll-container flex space-x-6 overflow-x-auto pb-4';
-                
-                const categoryVideos = videos.filter(video => video.category === category);
+
+                const categoryVideos = filteredVideos.filter(video => video.category === category);
                 categoryVideos.forEach(video => {
                     horizontalContainer.appendChild(createVideoCard(video));
                 });
                 categorySection.appendChild(horizontalContainer);
                 videoCategoriesContainer.appendChild(categorySection);
             });
+            renderWatchedVideosSection();
         };
-        
-        // Função para abrir o modal do vídeo
+
+        // Função para carregar e iniciar o player do YouTube dentro do modal
+        const loadPlayer = (videoId, startTime = 0, containerId = 'videoContainer') => {
+            if (player) {
+                player.destroy();
+            }
+
+            // Cria o elemento div para o player dentro do contêiner
+            const playerDiv = document.createElement('div');
+            playerDiv.id = 'youtubePlayer';
+            // Garante que o contêiner seja limpo antes de adicionar um novo player
+            document.getElementById(containerId).innerHTML = '';
+            document.getElementById(containerId).appendChild(playerDiv);
+
+            player = new YT.Player(playerDiv, {
+                videoId: videoId,
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 1,
+                    'rel': 0,
+                    'start': startTime
+                },
+                events: {
+                    'onStateChange': (event) => {
+                        const watchedVideos = loadWatchedVideos();
+                        if (!watchedVideos[videoId]) {
+                            watchedVideos[videoId] = {};
+                        }
+                        
+                        if (event.data === YT.PlayerState.PLAYING) {
+                            // Salva o tempo de reprodução a cada 3 segundos
+                            setInterval(() => {
+                                if (player && player.getPlayerState() === YT.PlayerState.PLAYING) {
+                                    watchedVideos[videoId].lastTime = player.getCurrentTime();
+                                    watchedVideos[videoId].duration = player.getDuration();
+                                    saveWatchedVideos(watchedVideos);
+                                }
+                            }, 3000);
+                        } else if (event.data === YT.PlayerState.ENDED) {
+                            // Limpa o tempo ao finalizar o vídeo
+                            watchedVideos[videoId].lastTime = 0;
+                            saveWatchedVideos(watchedVideos);
+                            renderWatchedVideosSection();
+                        }
+                    },
+                    'onReady': (event) => {
+                        // Tenta tocar o vídeo a partir do tempo salvo
+                        if (startTime > 0) {
+                            event.target.seekTo(startTime);
+                        }
+                        event.target.playVideo();
+                        // Tenta entrar em fullscreen se o dispositivo estiver na horizontal
+                        if (window.innerWidth > window.innerHeight) {
+                            enterFullscreen(event.target.getIframe());
+                        }
+                    }
+                }
+            });
+        };
+
         const openVideoModal = (video) => {
-            // Se o mini-player estiver ativo, feche-o primeiro
-            if (!miniPlayer.classList.contains('hidden')) {
+            if (!isYouTubeAPIReady) {
+                videoQueue.push(video);
+                console.log("YouTube API is not ready. Queued video:", video.title);
+                return;
+            }
+
+            if (isMiniPlayerActive) {
                 closeMiniPlayer();
             }
-            videoContainer.innerHTML = `
-                <iframe 
-                    id="currentVideoIframe"
-                    class="absolute top-0 left-0 w-full h-full rounded-lg"
-                    src="https://www.youtube.com/embed/${video.id}?autoplay=1" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen>
-                </iframe>
-            `;
-            videoTitle.textContent = video.title;
-            videoModal.classList.remove('hidden');
-            
-            // Adiciona a nova mensagem de rotação
-            if (window.innerWidth < window.innerHeight) { // Verifica se a tela está em modo retrato
-                rotateMessage.classList.remove('hidden');
-                phoneRotateIcon.classList.add('animate-rotate');
-                
-                // Esconde a mensagem após 5 segundos
-                setTimeout(() => {
-                    rotateMessage.classList.add('hidden');
-                    phoneRotateIcon.classList.remove('animate-rotate');
-                }, 5000);
-            }
 
-            // Inicia o temporizador para marcar o vídeo como assistido
-            watchTimer = setTimeout(() => {
-                markVideoAsWatched(video.id);
-            }, WATCH_THRESHOLD);
+            const watchedVideos = loadWatchedVideos();
+            const startTime = watchedVideos[video.id] ? watchedVideos[video.id].lastTime : 0;
+
+            videoModal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            videoTitle.textContent = video.title;
+            lastPlayedVideoId = video.id;
+
+            loadPlayer(video.id, startTime, 'videoContainer');
         };
 
-        // Função para fechar o modal e mover o vídeo para o mini-player
-        const closeModal = () => {
+        // Função para fechar o modal
+        const closeVideoModal = () => {
             videoModal.classList.add('hidden');
-            // Obtém o iframe do vídeo
-            const iframe = document.getElementById('currentVideoIframe');
-            if (iframe) {
-                // Adiciona o iframe ao mini-player
-                miniPlayerVideoContainer.appendChild(iframe);
-                // Exibe o mini-player
+            document.body.classList.remove('overflow-hidden');
+            if (player) {
+                player.destroy();
+                player = null;
+            }
+        };
+
+        // Função para minimizar o modal para o mini-player
+        const minimizeVideoModal = () => {
+            if (lastPlayedVideoId) {
+                videoModal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
                 miniPlayer.classList.remove('hidden');
+                isMiniPlayerActive = true;
                 
-                // Sai do modo de tela cheia se estiver ativo
-                if (document.fullscreenElement) {
-                    document.exitFullscreen();
+                // Reposiciona o player para o mini-player
+                const iframe = videoContainer.querySelector('iframe');
+                if (iframe) {
+                    miniPlayerContainer.innerHTML = '';
+                    miniPlayerContainer.appendChild(iframe);
                 }
             }
-            // Cancela o temporizador se o modal for fechado
-            clearTimeout(watchTimer);
         };
-        
+
         // Função para fechar o mini-player
         const closeMiniPlayer = () => {
             miniPlayer.classList.add('hidden');
-            miniPlayerVideoContainer.innerHTML = ''; // Para o vídeo
-            // Sai do modo de tela cheia se estiver ativo
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
+            isMiniPlayerActive = false;
+            if (player) {
+                player.destroy();
+                player = null;
+            }
+        };
+        
+        // Função para ativar a tela cheia em dispositivos móveis
+        const enterFullscreen = (element) => {
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            } else if (element.webkitRequestFullscreen) { /* Safari */
+                element.webkitRequestFullscreen();
+            } else if (element.msRequestFullscreen) { /* IE11 */
+                element.msRequestFullscreen();
             }
         };
 
-        // Adiciona evento de clique para o botão de fechar o modal grande
-        closeModalBtn.addEventListener('click', closeModal);
-        
-        // Adiciona evento de clique para o botão de fechar o mini-player
-        closeMiniPlayerBtn.addEventListener('click', closeMiniPlayer);
-
-        // --- Lógica de arrastar o mini-player ---
-        let isDragging = false;
-        let initialX, initialY; // Posição inicial do clique do mouse/toque
-        let xOffset = 0, yOffset = 0; // Posição atual do mini-player
-        let animationFrameId = null;
-
-        // Inicia o arrasto
-        dragOverlay.addEventListener("mousedown", dragStart);
-        dragOverlay.addEventListener("touchstart", dragStart);
-
-        function dragStart(e) {
-            e.preventDefault();
-            
-            const clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
-            const clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
-
-            initialX = clientX;
-            initialY = clientY;
-            const style = window.getComputedStyle(miniPlayer);
-            const matrix = new DOMMatrix(style.transform);
-            xOffset = matrix.m41;
-            yOffset = matrix.m42;
-
-            isDragging = true;
-            animationFrameId = requestAnimationFrame(updateDragPosition);
-        }
-
-        // Finaliza o arrasto
-        document.addEventListener("mouseup", dragEnd);
-        document.addEventListener("touchend", dragEnd);
-
-        function dragEnd(e) {
-            isDragging = false;
-            cancelAnimationFrame(animationFrameId);
-        }
-
-        // Move o player com base na posição do mouse
-        document.addEventListener("mousemove", dragMove);
-        document.addEventListener("touchmove", dragMove);
-        
-        let currentX, currentY; // Posição atual do mouse/toque
-
-        function dragMove(e) {
-            if (!isDragging) return;
-            e.preventDefault();
-
-            currentX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
-            currentY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
-        }
-
-        // Função de atualização no loop de animação
-        function updateDragPosition() {
-            if (isDragging) {
-                const dx = currentX - initialX;
-                const dy = currentY - initialY;
-                
-                let newX = xOffset + dx;
-                let newY = yOffset + dy;
-
-                const screenWidth = window.innerWidth;
-                const screenHeight = window.innerHeight;
-                const playerWidth = miniPlayer.offsetWidth;
-                const playerHeight = miniPlayer.offsetHeight;
-
-                // Limita a posição para que o player não saia da tela
-                newX = Math.min(Math.max(newX, -miniPlayer.offsetLeft), screenWidth - miniPlayer.offsetLeft - playerWidth);
-                newY = Math.min(Math.max(newY, -miniPlayer.offsetTop), screenHeight - miniPlayer.offsetTop - playerHeight);
-                
-                setTranslate(newX, newY, miniPlayer);
-
-                animationFrameId = requestAnimationFrame(updateDragPosition);
-            }
-        }
-        
-        function setTranslate(xPos, yPos, el) {
-            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
-        }
-
-        // --- Lógica de redimensionamento do mini-player ---
-        let isResizing = false;
-        let initialWidth, initialHeight;
-        let initialMouseX, initialMouseY;
-        let currentHandle = null;
-
-        Object.keys(resizeHandles).forEach(key => {
-            const handle = resizeHandles[key];
-            handle.addEventListener('mousedown', resizeStart);
-            handle.addEventListener('touchstart', resizeStart);
-        });
-
-        function resizeStart(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            
-            isResizing = true;
-            currentHandle = e.target;
-            
-            initialWidth = miniPlayer.offsetWidth;
-            initialHeight = miniPlayer.offsetHeight;
-            initialMouseX = e.clientX || e.touches[0].clientX;
-            initialMouseY = e.clientY || e.touches[0].clientY;
-
-            miniPlayer.style.transition = 'none'; // Desativa a transição para um redimensionamento mais suave
-            document.body.classList.add('select-none'); // Previne a seleção de texto
-        }
-
-        document.addEventListener('mousemove', resizeMove);
-        document.addEventListener('touchmove', resizeMove);
-
-        function resizeMove(e) {
-            if (!isResizing) return;
-            e.preventDefault();
-
-            const mouseX = e.clientX || e.touches[0].clientX;
-            const mouseY = e.clientY || e.touches[0].clientY;
-
-            const dx = mouseX - initialMouseX;
-            const dy = mouseY - initialMouseY;
-
-            let newWidth, newHeight;
-            let currentX = miniPlayer.offsetLeft;
-            let currentY = miniPlayer.offsetTop;
-
-            switch (currentHandle.id) {
-                case 'resizeHandle-br':
-                    newWidth = initialWidth + dx;
-                    newHeight = initialHeight + dy;
-                    break;
-                case 'resizeHandle-bl':
-                    newWidth = initialWidth - dx;
-                    newHeight = initialHeight + dy;
-                    if (newWidth > 100) { // Limita a largura mínima
-                        miniPlayer.style.left = (currentX + dx) + 'px';
-                    }
-                    break;
-                case 'resizeHandle-tr':
-                    newWidth = initialWidth + dx;
-                    newHeight = initialHeight - dy;
-                    if (newHeight > 100) { // Limita a altura mínima
-                        miniPlayer.style.top = (currentY + dy) + 'px';
-                    }
-                    break;
-                case 'resizeHandle-tl':
-                    newWidth = initialWidth - dx;
-                    newHeight = initialHeight - dy;
-                    if (newWidth > 100) {
-                        miniPlayer.style.left = (currentX + dx) + 'px';
-                    }
-                    if (newHeight > 100) {
-                        miniPlayer.style.top = (currentY + dy) + 'px';
-                    }
-                    break;
-            }
-
-          // Limite mínimo de tamanho
-                if (newWidth > 150) miniPlayer.style.width = `${newWidth}px`;
-                if (newHeight > 100) miniPlayer.style.height = `${newHeight}px`;
-                // Atualiza a posição apenas se a lógica de redimensionamento exigir
-                if (currentHandle.id.includes('l')) miniPlayer.style.left = `${newLeft}px`;
-                if (currentHandle.id.includes('t')) miniPlayer.style.top = `${newTop}px`;
-        }
-
-        document.addEventListener('mouseup', resizeEnd);
-        document.addEventListener('touchend', resizeEnd);
-
-        function resizeEnd() {
-            isResizing = false;
-            currentHandle = null;
-            miniPlayer.style.transition = 'transform 0.3s ease-in-out';
-            document.body.classList.remove('select-none');
-        }
-
-        // Função para lidar com a rotação da tela (Fullscreen)
-        const handleOrientationChange = () => {
-            const videoIframe = document.querySelector('#miniPlayerVideoContainer iframe');
-            if (videoIframe && !miniPlayer.classList.contains('hidden')) {
-                // Se a tela estiver em modo paisagem (landscape) e o player estiver ativo
-                if (window.innerHeight < window.innerWidth) {
-                    if (videoIframe.requestFullscreen) {
-                        videoIframe.requestFullscreen();
-                    } else if (videoIframe.mozRequestFullScreen) { // Firefox
-                        videoIframe.mozRequestFullScreen();
-                    } else if (videoIframe.webkitRequestFullscreen) { // Chrome, Safari
-                        videoIframe.webkitRequestFullscreen();
-                    } else if (videoIframe.msRequestFullscreen) { // IE11
-                        videoIframe.msRequestFullscreen();
-                    }
-                } else {
-                    // Se a tela estiver em modo retrato (portrait), sai do fullscreen
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    } else if (document.mozCancelFullScreen) { // Firefox
-                        document.mozCancelFullScreen();
-                    } else if (document.webkitExitFullscreen) { // Chrome, Safari
-                        document.webkitExitFullscreen();
-                    } else if (document.msExitFullscreen) { // IE11
-                        document.msExitFullscreen();
-                    }
+        // Adiciona um listener para a mudança de orientação
+        window.addEventListener('orientationchange', () => {
+            if (window.matchMedia("(orientation: landscape)").matches) {
+                const modalPlayer = videoModal.querySelector('iframe');
+                const miniPlayerPlayer = miniPlayerContainer.querySelector('iframe');
+                if (modalPlayer && !videoModal.classList.contains('hidden')) {
+                    enterFullscreen(modalPlayer);
+                } else if (miniPlayerPlayer && !miniPlayer.classList.contains('hidden')) {
+                    enterFullscreen(miniPlayerPlayer);
                 }
             }
-        };
+        });
+        
 
-        // Adiciona um listener para o evento de mudança de orientação
-        window.addEventListener('orientationchange', handleOrientationChange);
+        // Lidar com a funcionalidade de arrastar e soltar do mini-player
+        const miniPlayerHandle = document.getElementById('miniPlayerHandle');
+        let isDragging = false;
+        let initialX, initialY;
 
+        miniPlayerHandle.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            initialX = e.clientX;
+            initialY = e.clientY;
+            miniPlayer.style.cursor = 'grabbing';
+        });
 
-        // Fecha o modal ao clicar fora dele
-        window.addEventListener('click', (event) => {
-            if (event.target === videoModal) {
-                closeModal();
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - initialX;
+            const dy = e.clientY - initialY;
+
+            const rect = miniPlayer.getBoundingClientRect();
+            let newX = rect.left + dx;
+            let newY = rect.top + dy;
+
+            newX = Math.max(0, Math.min(newX, window.innerWidth - rect.width));
+            newY = Math.max(0, Math.min(newY, window.innerHeight - rect.height));
+
+            miniPlayer.style.left = `${newX}px`;
+            miniPlayer.style.top = `${newY}px`;
+            miniPlayer.style.right = 'auto';
+            miniPlayer.style.bottom = 'auto';
+
+            initialX = e.clientX;
+            initialY = e.clientY;
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                miniPlayer.style.cursor = 'grab';
             }
         });
 
-        // Função para filtrar os vídeos por texto de pesquisa
-        const searchVideos = () => {
-            const query = searchInput.value.toLowerCase();
-            if (query.length > 0) {
-                document.querySelectorAll('.video-category-section').forEach(section => section.classList.add('hidden'));
-                
-                const filteredVideos = videos.filter(video => 
-                    video.title.toLowerCase().includes(query) || 
-                    video.category.toLowerCase().includes(query)
-                );
-                
+        // Event listener para o botão de pesquisa
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredVideos = videos.filter(video =>
+                video.title.toLowerCase().includes(searchTerm)
+            );
+            
+            // Oculta todas as seções de categorias
+            document.querySelectorAll('.video-category-section').forEach(section => section.classList.add('hidden'));
+
+            if (searchTerm.length > 0) {
+                searchResultsSection.classList.remove('hidden');
                 searchResultsGrid.innerHTML = '';
                 if (filteredVideos.length > 0) {
+                    noResults.classList.add('hidden');
                     filteredVideos.forEach(video => {
                         searchResultsGrid.appendChild(createVideoCard(video));
                     });
-                    searchResultsSection.classList.remove('hidden');
-                    noResults.classList.add('hidden');
                 } else {
-                    searchResultsSection.classList.add('hidden');
                     noResults.classList.remove('hidden');
                     noResults.textContent = 'Nenhum vídeo encontrado com os termos da pesquisa.';
                 }
-
-                document.querySelectorAll('.categoryBtn').forEach(btn => btn.classList.remove('bg-red-600'));
             } else {
-                document.querySelectorAll('.video-category-section').forEach(section => section.classList.remove('hidden'));
                 searchResultsSection.classList.add('hidden');
                 noResults.classList.add('hidden');
+                // Mostra todas as seções de categorias novamente
+                document.querySelectorAll('.video-category-section').forEach(section => section.classList.remove('hidden'));
+            }
+        });
 
-                const allBtn = document.querySelector('[data-category="Todos"]');
-                if (allBtn) {
-                    allBtn.classList.add('bg-red-600');
-                }
+        // Event listeners para o modal de vídeo
+        closeModalBtn.addEventListener('click', closeVideoModal);
+        minimizeModalBtn.addEventListener('click', minimizeVideoModal);
+        miniPlayerCloseBtn.addEventListener('click', closeMiniPlayer);
+
+        // Event listener para o botão "Surpreenda-se"
+        surpriseMeBtn.addEventListener('click', () => {
+            const allVideos = videos;
+            const randomVideo = allVideos[Math.floor(Math.random() * allVideos.length)];
+            openVideoModal(randomVideo);
+        });
+        
+        // Event listener para o botão "Não assistidos"
+        unwatchedBtn.addEventListener('click', () => {
+            const watchedVideos = loadWatchedVideos();
+            const unwatchedVideos = videos.filter(video => !watchedVideos[video.id] || watchedVideos[video.id].lastTime === 0);
+            
+            // Oculta as seções de categorias originais
+            document.querySelectorAll('.video-category-section').forEach(section => section.classList.add('hidden'));
+
+            searchResultsSection.classList.remove('hidden');
+            searchResultsGrid.innerHTML = '';
+            
+            if (unwatchedVideos.length > 0) {
+                noResults.classList.add('hidden');
+                unwatchedVideos.forEach(video => {
+                    searchResultsGrid.appendChild(createVideoCard(video));
+                });
+            } else {
+                noResults.classList.remove('hidden');
+                noResults.textContent = 'Parabéns! Você já assistiu a todos os vídeos.';
+            }
+
+            // Remove a seleção de outros botões e destaca o "Não assistidos"
+            document.querySelectorAll('.categoryBtn').forEach(btn => btn.classList.remove('bg-red-600', 'hover:bg-red-700'));
+            unwatchedBtn.classList.add('bg-purple-600', 'hover:bg-purple-700');
+        });
+
+        // Event listener para o vídeo de destaque
+        featuredVideoContainer.addEventListener('click', () => {
+            const featuredVideoId = featuredVideoContainer.dataset.videoId;
+            const featuredVideo = videos.find(v => v.id === featuredVideoId);
+            if (featuredVideo) {
+                openVideoModal(featuredVideo);
+            }
+        });
+
+        // Oculta/mostra o cabeçalho flutuante ao rolar
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+            if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                floatingHeaderContainer.classList.add('hidden-header');
+            } else {
+                floatingHeaderContainer.classList.remove('hidden-header');
+            }
+            lastScrollY = currentScrollY;
+        });
+        
+        // Função para carregar o script da API do YouTube
+        const loadYouTubeAPI = () => {
+            if (!document.getElementById('youtube-iframe-api')) {
+                const tag = document.createElement('script');
+                tag.src = "https://www.youtube.com/iframe_api";
+                tag.id = "youtube-iframe-api";
+                const firstScriptTag = document.getElementsByTagName('script')[0];
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
             }
         };
 
-        // Adiciona evento de "input" para a pesquisa em tempo real
-        searchInput.addEventListener('input', searchVideos);
 
-        // Renderiza as seções de categorias e ativa o botão "Todos" inicialmente
-        window.onload = () => {
-            loadWatchedVideos();
+        // Função chamada quando a API do YouTube está pronta.
+        window.onYouTubeIframeAPIReady = () => {
+            console.log("YouTube API is ready. Rendering page content.");
+            isYouTubeAPIReady = true;
+            renderFeaturedVideo();
             renderCategories();
-            const allBtn = document.querySelector('[data-category="Todos"]');
-            if (allBtn) {
-                allBtn.classList.add('bg-red-600');
-            }
+            videoQueue.forEach(video => openVideoModal(video));
+            videoQueue = [];
         };
+
+
+
+        // Inicia o processo de carregamento da API do YouTube
+        loadYouTubeAPI();
+
     </script>
 </body>
 </html>
-
