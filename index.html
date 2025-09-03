@@ -136,7 +136,7 @@
         </div>
     </div>
 
-    <!-- Mini-player <!--
+    <!-- Mini-player -->
     <div id="miniPlayer" class="mini-player-container hidden rounded-lg shadow-xl overflow-hidden cursor-move">
         <div id="miniPlayerContainer" class="relative w-full h-full">
             <!-- Conteúdo do mini-player -->
@@ -192,7 +192,6 @@
 
     <script>
         // Dados de exemplo para os vídeos.
-        
         const videos = [
             { id: 'yODJiiNQ4T8', title: 'Condições para um avivamento jenuíno', category: 'Mensagens', thumbnail: 'https://img.youtube.com/vi/yODJiiNQ4T8/mqdefault.jpg' },
             { id: 'qWTKkY2GaNs', title: 'O casamento de Deus com o seu povo', category: 'Mensagens', thumbnail: 'https://img.youtube.com/vi/qWTKkY2GaNs/mqdefault.jpg' },
@@ -723,7 +722,7 @@
                 const videoInfo = videos.find(v => v.id === lastPlayedVideoId);
                 navigator.share({
                     title: videoInfo.title,
-                    text: `Conheça nosso APP https://helisonesc.github.io/IPCApp2/ e assista a este e outros vídeo da Igreja Presbiteriana do Centenário: ${videoInfo.title}`,
+                    text: `Assista a este vídeo do APP Centenário: ${videoInfo.title}`,
                     url: videoUrl,
                 }).catch((error) => console.log('Erro ao compartilhar', error));
             } else {
@@ -731,21 +730,7 @@
             }
         });
 
-        // Event listener para o novo botão "Compartilhar App"
-        shareAppBtn.addEventListener('click', () => {
-            if (navigator.share) {
-                const videoInfo = videos.find(v => v.id === lastPlayedVideoId);
-                const appUrl = `${window.location.origin}?v=${lastPlayedVideoId}`;
-                
-                navigator.share({
-                    title: videoInfo.title,
-                    text: `Assista a este vídeo no nosso aplicativo: ${videoInfo.title}`,
-                    url: appUrl,
-                }).catch((error) => console.log('Erro ao compartilhar', error));
-            } else {
-                alert("A API de compartilhamento não é suportada neste navegador.");
-            }
-        });
+        
 
 
         // Event listener para o botão "Surpreenda-se"
@@ -831,5 +816,4 @@
     </script>
 </body>
 </html>
-
 
