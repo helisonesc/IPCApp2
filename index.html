@@ -359,6 +359,28 @@
             }
         };
 
+        // Função para rolar para o card mais próximo
+        const scrollToNearestCard = (scrollContainer, direction) => {
+            const cards = Array.from(scrollContainer.querySelectorAll('.video-card'));
+            const containerScrollLeft = scrollContainer.scrollLeft;
+
+            let targetCard = null;
+            if (direction === 'next') {
+                targetCard = cards.find(card => card.offsetLeft > containerScrollLeft + 1);
+            } else { // 'prev'
+                const reversedCards = [...cards].reverse();
+                targetCard = reversedCards.find(card => card.offsetLeft < containerScrollLeft - 1);
+            }
+
+            if (targetCard) {
+                scrollContainer.scrollTo({
+                    left: targetCard.offsetLeft,
+                    behavior: 'smooth'
+                });
+            }
+        };
+
+
         // Função para criar os botões de navegação
         const createNavButtons = (scrollContainer) => {
             const container = document.createElement('div');
@@ -368,24 +390,14 @@
             prevBtn.className = 'prev-btn p-2 bg-gray-800 bg-opacity-50 text-white rounded-full pointer-events-auto transition-opacity duration-300 opacity-0 hover:opacity-100';
             prevBtn.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>`;
             prevBtn.onclick = () => {
-                const cardWidth = scrollContainer.querySelector('.video-card').offsetWidth;
-                const scrollAmount = cardWidth + 24; // Adiciona a margem de 24px (space-x-6 = 1.5rem = 24px)
-                scrollContainer.scrollBy({
-                    left: -scrollAmount,
-                    behavior: 'smooth'
-                });
+                 scrollToNearestCard(scrollContainer, 'prev');
             };
 
             const nextBtn = document.createElement('button');
             nextBtn.className = 'next-btn p-2 bg-gray-800 bg-opacity-50 text-white rounded-full pointer-events-auto transition-opacity duration-300 opacity-0 hover:opacity-100';
             nextBtn.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
             nextBtn.onclick = () => {
-                const cardWidth = scrollContainer.querySelector('.video-card').offsetWidth;
-                const scrollAmount = cardWidth + 24; // Adiciona a margem de 24px (space-x-6 = 1.5rem = 24px)
-                scrollContainer.scrollBy({
-                    left: scrollAmount,
-                    behavior: 'smooth'
-                });
+                 scrollToNearestCard(scrollContainer, 'next');
             };
 
             // Adiciona a lógica para mostrar/ocultar os botões de navegação
