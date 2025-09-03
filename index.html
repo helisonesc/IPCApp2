@@ -722,10 +722,9 @@
                 const videoUrl = `https://www.youtube.com/watch?v=${lastPlayedVideoId}`;
                 const videoInfo = videos.find(v => v.id === lastPlayedVideoId);
                 navigator.share({
-                    url: videoUrl,
                     title: videoInfo.title,
-                    text: `Conheça o APP *CentenárioFlix* e assista a este e outros vídeos da Igreja Presbiteriana do Centenário: ${videoInfo.title} https://helisonesc.github.io/IPCApp2/`,
-                    
+                    text: `${videoUrl}\n\nConheça o APP CentenárioFlix e assista a este e outros vídeos da *Igreja Presbiteriana do Centenário*: ${videoInfo.title}\n${videoUrl}`,
+                    url: "https://helisonesc.github.io/IPCApp2/"
                 }).catch((error) => console.log('Erro ao compartilhar', error));
             } else {
                 alert("A API de compartilhamento não é suportada neste navegador.");
@@ -818,3 +817,4 @@
     </script>
 </body>
 </html>
+
