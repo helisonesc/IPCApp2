@@ -114,19 +114,23 @@
     <!-- Modal para exibir o vídeo -->
     <div id="videoModal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 transition-opacity duration-300 ease-in-out">
         <div class="bg-gray-900 rounded-lg shadow-xl p-6 relative w-full max-w-4xl max-h-full flex flex-col items-center">
-            <div class="flex flex-col items-start w-full mb-4">
-                <h2 id="videoTitle" class="text-xl sm:text-2xl font-semibold leading-tight text-left mb-2"></h2>
-                <div class="flex space-x-2">
-                    <button id="minimizeModalBtn" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 transition-colors rounded-full text-sm">
-                        Minimizar
-                    </button>
-                    <button id="closeModalBtn" class="px-4 py-2 bg-red-500 hover:bg-red-700 transition-colors text-white text-sm rounded-full">
-                        Fechar
-                    </button>
-                </div>
-            </div>
-            <div id="videoContainer" class="video-container">
+            <h2 id="videoTitle" class="text-xl sm:text-2xl font-semibold leading-tight text-center mb-4"></h2>
+            <div id="videoContainer" class="video-container w-full">
                 <!-- O vídeo do YouTube será inserido aqui -->
+            </div>
+            <div class="flex flex-wrap justify-center sm:justify-start space-x-2 sm:space-x-4 mt-4 w-full">
+                <button id="minimizeModalBtn" class="flex items-center px-4 py-2 bg-gray-700 hover:bg-gray-600 transition-colors rounded-full text-sm">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                    Minimizar
+                </button>
+                <button id="closeModalBtn" class="flex items-center px-4 py-2 bg-red-500 hover:bg-red-700 transition-colors text-white text-sm rounded-full">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    Fechar
+                </button>
+                <button id="shareVideoBtn" class="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-700 transition-colors text-white text-sm rounded-full">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684a3 3 0 100-2.684m0-1.342a3 3 0 100 2.684m8.684 1.342c.202.404.316.86.316 1.342s-.114.938-.316 1.342m0-2.684a3 3 0 110 2.684m0-2.684a3 3 0 100 2.684m-4.342 6.684a3 3 0 11-2.684-2.684m0 2.684a3 3 0 100-2.684m0-1.342a3 3 0 100 2.684"></path></svg>
+                    Compartilhar
+                </button>
             </div>
         </div>
     </div>
@@ -188,7 +192,6 @@
     <script>
         // Dados de exemplo para os vídeos.
         const videos = [
-            { id: 'ovtXBek-rLI', title: 'Por que Jesus Chorou?', category: 'Mensagens', thumbnail: 'https://img.youtube.com/vi/ovtXBek-rLI/mqdefault.jpg' },
             { id: 'yODJiiNQ4T8', title: 'Condições para um avivamento jenuíno', category: 'Mensagens', thumbnail: 'https://img.youtube.com/vi/yODJiiNQ4T8/mqdefault.jpg' },
             { id: 'qWTKkY2GaNs', title: 'O casamento de Deus com o seu povo', category: 'Mensagens', thumbnail: 'https://img.youtube.com/vi/qWTKkY2GaNs/mqdefault.jpg' },
             { id: '3mlEJH5b6w4', title: 'Esperança renovada no encontro com Jesus', category: 'Mensagens', thumbnail: 'https://img.youtube.com/vi/3mlEJH5b6w4/mqdefault.jpg' },
@@ -212,17 +215,11 @@
             { id: 'i6uIFur3u-8', title: 'Chamados para frutificar', category: 'Mensagens', thumbnail: 'https://img.youtube.com/vi/i6uIFur3u-8/mqdefault.jpg' },
             { id: 'yPddHFascuY', title: 'Deus é fiel em cumprir promessas', category: 'Mensagens', thumbnail: 'https://img.youtube.com/vi/yPddHFascuY/mqdefault.jpg' },
             { id: 'xHEsrdeDUEg', title: 'Deus é Deus de Recomeços', category: 'Mensagens', thumbnail: 'https://img.youtube.com/vi/xHEsrdeDUEg/mqdefault.jpg' },
-
-
-        // Estudos
             { id: 'Jw2LMlSZVsM', title: 'Efésios | PT.1', category: 'Estudos Bíblicos', thumbnail: 'https://img.youtube.com/vi/Jw2LMlSZVsM/mqdefault.jpg' },
             { id: 'Bd4itbmPSDs', title: 'Efésios | PT.2', category: 'Estudos Bíblicos', thumbnail: 'https://img.youtube.com/vi/Bd4itbmPSDs/mqdefault.jpg' },
             { id: 'Y7ehQ_REddk', title: 'O Juízo de Deus | PT. 1', category: 'Estudos Bíblicos', thumbnail: 'https://img.youtube.com/vi/Y7ehQ_REddk/mqdefault.jpg' },
             { id: 'ZntBEoVWW5E', title: 'O Juízo de Deus | PT. 2', category: 'Estudos Bíblicos', thumbnail: 'https://img.youtube.com/vi/ZntBEoVWW5E/mqdefault.jpg' },
             { id: 'Mt2zIlkrcUI', title: 'O Juízo de Deus | PT. 3', category: 'Estudos Bíblicos', thumbnail: 'https://img.youtube.com/vi/Mt2zIlkrcUI/mqdefault.jpg' },
-
-
-        // Peças Teatrais
             { id: 'QgrNrHMrsr4', title: 'Vida Longa ao Rei', category: 'Peças Teatrais', thumbnail: 'https://img.youtube.com/vi/QgrNrHMrsr4/mqdefault.jpg' },
             { id: 'Hs9If5vlveg', title: 'Deus o Mundo Amou', category: 'Peças Teatrais', thumbnail: 'https://img.youtube.com/vi/Hs9If5vlveg/mqdefault.jpg' },
             { id: 'eY52Zsg-Kug', title: 'Em desenvolvimento', category: 'Peças Teatrais', thumbnail: 'https://img.youtube.com/vi/eY52Zsg-Kug/mqdefault.jpg' }
@@ -245,6 +242,7 @@
         const miniPlayerContainer = document.getElementById('miniPlayerContainer');
         const miniPlayerCloseBtn = document.getElementById('miniPlayerCloseBtn');
         const minimizeModalBtn = document.getElementById('minimizeModalBtn');
+        const shareVideoBtn = document.getElementById('shareVideoBtn');
         const featuredVideoContainer = document.getElementById('featuredVideoContainer');
         const floatingHeaderContainer = document.getElementById('floatingHeaderContainer');
         const featuredThumbnail = document.getElementById('featuredThumbnail');
@@ -343,18 +341,76 @@
                 title.textContent = 'Continue Assistindo';
                 section.appendChild(title);
 
-                const container = document.createElement('div');
-                container.className = 'horizontal-scroll-container flex space-x-6 overflow-x-auto pb-4';
+                const horizontalContainer = document.createElement('div');
+                horizontalContainer.className = 'relative';
+
+                const scrollContainer = document.createElement('div');
+                scrollContainer.className = 'horizontal-scroll-container flex space-x-6 overflow-x-auto pb-4';
                 
                 watchedVideosList.forEach(video => {
-                    container.appendChild(createVideoCard(video, true));
+                    scrollContainer.appendChild(createVideoCard(video, true));
                 });
-                section.appendChild(container);
-                
+
+                horizontalContainer.appendChild(scrollContainer);
+                horizontalContainer.appendChild(createNavButtons(scrollContainer));
+
+                section.appendChild(horizontalContainer);
                 videoCategoriesContainer.appendChild(section);
             }
         };
 
+        // Função para criar os botões de navegação
+        const createNavButtons = (scrollContainer) => {
+            const container = document.createElement('div');
+            container.className = 'absolute inset-y-0 left-0 right-0 flex items-center justify-between pointer-events-none px-2';
+
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'prev-btn p-2 bg-gray-800 bg-opacity-50 text-white rounded-full pointer-events-auto transition-opacity duration-300 opacity-0 hover:opacity-100';
+            prevBtn.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>`;
+            prevBtn.onclick = () => {
+                const cardWidth = scrollContainer.querySelector('.video-card').offsetWidth;
+                const scrollAmount = cardWidth + 24; // Adiciona a margem de 24px (space-x-6 = 1.5rem = 24px)
+                scrollContainer.scrollBy({
+                    left: -scrollAmount,
+                    behavior: 'smooth'
+                });
+            };
+
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'next-btn p-2 bg-gray-800 bg-opacity-50 text-white rounded-full pointer-events-auto transition-opacity duration-300 opacity-0 hover:opacity-100';
+            nextBtn.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+            nextBtn.onclick = () => {
+                const cardWidth = scrollContainer.querySelector('.video-card').offsetWidth;
+                const scrollAmount = cardWidth + 24; // Adiciona a margem de 24px (space-x-6 = 1.5rem = 24px)
+                scrollContainer.scrollBy({
+                    left: scrollAmount,
+                    behavior: 'smooth'
+                });
+            };
+
+            // Adiciona a lógica para mostrar/ocultar os botões de navegação
+            const updateButtonVisibility = () => {
+                if (scrollContainer.scrollLeft > 0) {
+                    prevBtn.classList.remove('opacity-0');
+                } else {
+                    prevBtn.classList.add('opacity-0');
+                }
+
+                if (scrollContainer.scrollLeft + scrollContainer.clientWidth >= scrollContainer.scrollWidth) {
+                    nextBtn.classList.add('opacity-0');
+                } else {
+                    nextBtn.classList.remove('opacity-0');
+                }
+            };
+
+            scrollContainer.addEventListener('scroll', updateButtonVisibility);
+            setTimeout(updateButtonVisibility, 300); // Garante que os botões apareçam corretamente ao carregar
+            
+            container.appendChild(prevBtn);
+            container.appendChild(nextBtn);
+            return container;
+        };
+        
         // Função para renderizar as seções de categorias e os botões de filtro
         const renderCategories = (filteredVideos = videos) => {
             const uniqueCategories = ['Todos', ...new Set(filteredVideos.map(video => video.category))];
@@ -410,12 +466,19 @@
                 categorySection.appendChild(sectionTitle);
 
                 const horizontalContainer = document.createElement('div');
-                horizontalContainer.className = 'horizontal-scroll-container flex space-x-6 overflow-x-auto pb-4';
+                horizontalContainer.className = 'relative';
+
+                const scrollContainer = document.createElement('div');
+                scrollContainer.className = 'horizontal-scroll-container flex space-x-6 overflow-x-auto pb-4';
 
                 const categoryVideos = filteredVideos.filter(video => video.category === category);
                 categoryVideos.forEach(video => {
-                    horizontalContainer.appendChild(createVideoCard(video));
+                    scrollContainer.appendChild(createVideoCard(video));
                 });
+                
+                horizontalContainer.appendChild(scrollContainer);
+                horizontalContainer.appendChild(createNavButtons(scrollContainer));
+
                 categorySection.appendChild(horizontalContainer);
                 videoCategoriesContainer.appendChild(categorySection);
             });
@@ -638,6 +701,22 @@
         minimizeModalBtn.addEventListener('click', minimizeVideoModal);
         miniPlayerCloseBtn.addEventListener('click', closeMiniPlayer);
 
+        // Event listener para o botão "Compartilhar"
+        shareVideoBtn.addEventListener('click', () => {
+            if (navigator.share) {
+                const videoUrl = `https://www.youtube.com/watch?v=${lastPlayedVideoId}`;
+                const videoInfo = videos.find(v => v.id === lastPlayedVideoId);
+                navigator.share({
+                    title: videoInfo.title,
+                    text: `Assista a este vídeo do APP Centenário: ${videoInfo.title}`,
+                    url: videoUrl,
+                }).catch((error) => console.log('Erro ao compartilhar', error));
+            } else {
+                alert("A API de compartilhamento não é suportada neste navegador.");
+            }
+        });
+
+
         // Event listener para o botão "Surpreenda-se"
         surpriseMeBtn.addEventListener('click', () => {
             const allVideos = videos;
@@ -721,6 +800,3 @@
     </script>
 </body>
 </html>
-
-
-
