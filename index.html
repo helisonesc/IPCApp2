@@ -193,6 +193,7 @@
     <script>
         // Dados de exemplo para os vídeos.
         const videos = [
+            { id: 'ovtXBek-rLI', title: 'Por que Jesus Chorou?', category: 'Mensagens', thumbnail: 'https://img.youtube.com/vi/ovtXBek-rLI/mqdefault.jpg' },
             { id: 'yODJiiNQ4T8', title: 'Condições para um avivamento jenuíno', category: 'Mensagens', thumbnail: 'https://img.youtube.com/vi/yODJiiNQ4T8/mqdefault.jpg' },
             { id: 'qWTKkY2GaNs', title: 'O casamento de Deus com o seu povo', category: 'Mensagens', thumbnail: 'https://img.youtube.com/vi/qWTKkY2GaNs/mqdefault.jpg' },
             { id: '3mlEJH5b6w4', title: 'Esperança renovada no encontro com Jesus', category: 'Mensagens', thumbnail: 'https://img.youtube.com/vi/3mlEJH5b6w4/mqdefault.jpg' },
@@ -722,7 +723,7 @@
                 const videoInfo = videos.find(v => v.id === lastPlayedVideoId);
                 navigator.share({
                     title: videoInfo.title,
-                    text: `Conheça o APP  CentenárioFlix https://helisonesc.github.io/IPCApp2/ e assista a este e outros vídeos da *Igreja Presbiteriana do Centenário*: ${videoInfo.title}`,
+                    text: `Conheça o APP  CentenárioFlix e assista a este e outros vídeos da *Igreja Presbiteriana do Centenário*: ${videoInfo.title} https://helisonesc.github.io/IPCApp2/`,
                     url: videoUrl,
                 }).catch((error) => console.log('Erro ao compartilhar', error));
             } else {
@@ -816,5 +817,6 @@
     </script>
 </body>
 </html>
+
 
 
