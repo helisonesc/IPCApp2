@@ -724,8 +724,8 @@
                 navigator.share({
                     url: videoUrl,
                     title: videoInfo.title,
-                    text: `*${videoInfo.title}* Conheça o APP  *CentenárioFlix* e assista a este e outros vídeos da Igreja Presbiteriana do Centenário:`,
-                    text2: `https://helisonesc.github.io/IPCApp2/`,
+                    text: `Conheça o APP *CentenárioFlix* e assista a este e outros vídeos da Igreja Presbiteriana do Centenário: ${videoInfo.title} https://helisonesc.github.io/IPCApp2/`,
+                    
                 }).catch((error) => console.log('Erro ao compartilhar', error));
             } else {
                 alert("A API de compartilhamento não é suportada neste navegador.");
@@ -818,11 +818,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
