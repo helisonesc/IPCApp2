@@ -129,7 +129,11 @@
                 </button>
                 <button id="shareVideoBtn" class="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-700 transition-colors text-white text-sm rounded-full">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684a3 3 0 100-2.684m0-1.342a3 3 0 100 2.684m8.684 1.342c.202.404.316.86.316 1.342s-.114.938-.316 1.342m0-2.684a3 3 0 110 2.684m0-2.684a3 3 0 100 2.684m-4.342 6.684a3 3 0 11-2.684-2.684m0 2.684a3 3 0 100-2.684m0-1.342a3 3 0 100 2.684"></path></svg>
-                    Compartilhar
+                    Compartilhar YouTube
+                </button>
+                <button id="shareAppBtn" class="flex items-center px-4 py-2 bg-green-500 hover:bg-green-700 transition-colors text-white text-sm rounded-full">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684a3 3 0 100-2.684m0-1.342a3 3 0 100 2.684m8.684 1.342c.202.404.316.86.316 1.342s-.114.938-.316 1.342m0-2.684a3 3 0 110 2.684m0-2.684a3 3 0 100 2.684m-4.342 6.684a3 3 0 11-2.684-2.684m0 2.684a3 3 0 100-2.684m0-1.342a3 3 0 100 2.684"></path></svg>
+                    Compartilhar App
                 </button>
             </div>
         </div>
@@ -243,6 +247,7 @@
         const miniPlayerCloseBtn = document.getElementById('miniPlayerCloseBtn');
         const minimizeModalBtn = document.getElementById('minimizeModalBtn');
         const shareVideoBtn = document.getElementById('shareVideoBtn');
+        const shareAppBtn = document.getElementById('shareAppBtn');
         const featuredVideoContainer = document.getElementById('featuredVideoContainer');
         const floatingHeaderContainer = document.getElementById('floatingHeaderContainer');
         const featuredThumbnail = document.getElementById('featuredThumbnail');
@@ -713,7 +718,7 @@
         minimizeModalBtn.addEventListener('click', minimizeVideoModal);
         miniPlayerCloseBtn.addEventListener('click', closeMiniPlayer);
 
-        // Event listener para o botão "Compartilhar"
+        // Event listener para o botão "Compartilhar YouTube"
         shareVideoBtn.addEventListener('click', () => {
             if (navigator.share) {
                 const videoUrl = `https://www.youtube.com/watch?v=${lastPlayedVideoId}`;
@@ -722,6 +727,22 @@
                     title: videoInfo.title,
                     text: `Assista a este vídeo do APP Centenário: ${videoInfo.title}`,
                     url: videoUrl,
+                }).catch((error) => console.log('Erro ao compartilhar', error));
+            } else {
+                alert("A API de compartilhamento não é suportada neste navegador.");
+            }
+        });
+
+        // Event listener para o novo botão "Compartilhar App"
+        shareAppBtn.addEventListener('click', () => {
+            if (navigator.share) {
+                const videoInfo = videos.find(v => v.id === lastPlayedVideoId);
+                const appUrl = `${window.location.origin}?v=${lastPlayedVideoId}`;
+                
+                navigator.share({
+                    title: videoInfo.title,
+                    text: `Assista a este vídeo no nosso aplicativo: ${videoInfo.title}`,
+                    url: appUrl,
                 }).catch((error) => console.log('Erro ao compartilhar', error));
             } else {
                 alert("A API de compartilhamento não é suportada neste navegador.");
