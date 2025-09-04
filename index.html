@@ -723,7 +723,7 @@
                 const videoInfo = videos.find(v => v.id === lastPlayedVideoId);
                 navigator.share({
                     title: videoInfo.title,
-                    text: `${videoUrl}\n\nConheça o APP CentenárioFlix e assista a este e outros vídeos da *Igreja Presbiteriana do Centenário*: ${videoInfo.title}\n${videoUrl}`,
+                    text: `${videoInfo.title}\n${videoUrl}\nConheça o APP CentenárioFlix e assista a este e outros vídeos da *Igreja Presbiteriana do Centenário*:`,
                     url: "https://helisonesc.github.io/IPCApp2/"
                 }).catch((error) => console.log('Erro ao compartilhar', error));
             } else {
@@ -817,4 +817,5 @@
     </script>
 </body>
 </html>
+
 
